@@ -1,7 +1,7 @@
 from django.db import models
+import uuid
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
-import uuid
 
 
 class CustomUserManager(BaseUserManager):
@@ -31,13 +31,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     # Optional fields
-    ROLE_CHOICES = (
-        ('0', 'Management'),
-        ('1', 'Sale'),
-        ('2', 'Support'),
-        ('3', 'Client')
-    )
-    role = models.CharField(max_length=64, choices=ROLE_CHOICES, blank=True)
+    # ROLE_CHOICES = (
+    #     ('0', 'Management'),
+    #     ('1', 'Sales'),
+    #     ('2', 'Support'),
+    #     ('3', 'Client')
+    # )
+    class Types(models.TextChoices):
+        MANAGEMENT = '0', 'Management'
+        SALES = '1', 'Sales'
+        SUPPORT = '2', 'Support'
+        CLIENT = '3', 'Client'
+
+    role = models.CharField(max_length=64, choices=Types.choices, blank=True)
 
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
@@ -53,8 +59,5 @@ class User(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True
 
-    # class Meta:
-    #     permissions = [
-    #         ("change_task_status", "Can change the status of tasks"),
-    #         ("close_task", "Can remove a task by setting its status as closed"),
-    #     ]
+    def __str__(self):
+        return self.email
