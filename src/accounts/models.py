@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
 import uuid
 
 
@@ -8,7 +9,6 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError("Vous devez saisir un email")
         user = self.model(email=self.normalize_email(email))
-
         user.set_password(password)
         user.save()
         return user
@@ -21,7 +21,7 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     # Required fields
     email = models.EmailField(unique=True, max_length=255, blank=False)
     is_active = models.BooleanField(default=True)
@@ -37,7 +37,7 @@ class User(AbstractBaseUser):
         ('2', 'Support'),
         ('3', 'Client')
     )
-    role = models.CharField(max_length=64, choices=ROLE_CHOICES, default=ROLE_CHOICES[0][0])
+    role = models.CharField(max_length=64, choices=ROLE_CHOICES, blank=True)
 
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
@@ -52,3 +52,9 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+
+    # class Meta:
+    #     permissions = [
+    #         ("change_task_status", "Can change the status of tasks"),
+    #         ("close_task", "Can remove a task by setting its status as closed"),
+    #     ]
