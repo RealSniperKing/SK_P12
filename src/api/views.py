@@ -20,6 +20,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .permissions import ZeroDjangoModelPermissions
 from .actions import get_one_action, get_two_actions, get_three_actions, get_four_actions
 
+from django_filters.rest_framework import DjangoFilterBackend
 
 def get_user_permissions_from_admin_interface(user, model_name):
     print("-------------------------------")
@@ -50,24 +51,25 @@ def get_user_permissions_from_admin_interface(user, model_name):
     # DEFAULT : ZERO ACTION
     active_permission = ZeroDjangoModelPermissions
     perm = None
+    http_method_list = []
 
     # GET ACTIONS
     if actions_number == 1:
-        perm = get_one_action(actions_string)
+        perm, http_method_list = get_one_action(actions_string)
 
     if actions_number == 2:
-        perm = get_two_actions(actions_string)
+        perm, http_method_list = get_two_actions(actions_string)
 
     if actions_number == 3:
-        perm = get_three_actions(actions_string)
+        perm, http_method_list = get_three_actions(actions_string)
 
     if actions_number == 4:
-        perm = get_four_actions(actions_string)
+        perm, http_method_list = get_four_actions(actions_string)
 
     if perm is not None:
         active_permission = perm
 
-    return active_permission
+    return active_permission, http_method_list
 
 
 # VIEWS
@@ -163,22 +165,22 @@ class UserViewset(ModelViewSet):
 
         instance = serializer.save()
 
-        print("instance = ", instance)
-        print('serializer.data["user_id"] = ', serializer.data["user_id"])
-
-        # Get groups
-        groups_list = Group.objects.all()
-        print("groups_list =", groups_list)
-
-        # Add to group
-        user_ob = User.objects.get(user_id=instance.user_id)
-        print("user_ob = ", user_ob)
-
-        # Remove all groups for this user
-        user_ob.groups.clear()
-
-        # Assign specific group to user
-        user_ob.groups.add(Group.objects.get(name=group_name_in_field))
+        # print("instance = ", instance)
+        # print('serializer.data["user_id"] = ', serializer.data["user_id"])
+        #
+        # # Get groups
+        # groups_list = Group.objects.all()
+        # print("groups_list =", groups_list)
+        #
+        # # Add to group
+        # user_ob = User.objects.get(user_id=instance.user_id)
+        # print("user_ob = ", user_ob)
+        #
+        # # Remove all groups for this user
+        # user_ob.groups.clear()
+        #
+        # # Assign specific group to user
+        # user_ob.groups.add(Group.objects.get(name=group_name_in_field))
 
 
         # contributor_projects = User.objects.filter(user_id=user_id)
@@ -195,9 +197,11 @@ class UserViewset(ModelViewSet):
 class ClientViewset(ModelViewSet):
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'put', 'delete']
+    http_method_names = []
     lookup_field = 'client_id'  # Use to show detail page
     # queryset = Client.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['company_name']
 
     action_serializers = {
         'create': ClientSerializer,
@@ -219,13 +223,13 @@ class ClientViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        permission_test = get_user_permissions_from_admin_interface(user, "Client")
+        permission_test, http_method_list = get_user_permissions_from_admin_interface(user, "Client")
+        self.http_method_names = http_method_list
         role = user.role
 
         # if role and role == User.Types.MANAGEMENT:
         self.permission_classes = [IsAuthenticated, permission_test]
 
-        #return super(ClientViewset, self).get_permissions()
         return super(self.__class__, self).get_permissions()
 
     def get_queryset(self):
