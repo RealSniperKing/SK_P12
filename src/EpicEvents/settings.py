@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'accounts',
-    'clients'
+    'crm'
 ]
 
 MIDDLEWARE = [
@@ -136,8 +136,46 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Ovewrite Django User by this custom class
 AUTH_USER_MODEL = "accounts.User"
 
+# DEFAULT_PERMISSION_CLASSES: (
+#     'rest_framework.permissions.IsAuthenticated',
+#     'rest_framework.permissions.DjangoModelPermissions',
+# )
+#"rest_framework_simplejwt.authentication.JWTAuthentication"
+
+# "DEFAULT_AUTHENTICATION_CLASSES": [
+#     "rest_framework.authentication.TokenAuthentication",
+#     "rest_framework.authentication.SessionAuthentication",
+# ],
+
+#"rest_framework_simplejwt.authentication.JWTAuthentication",
+#"rest_framework.authentication.SessionAuthentication",
+# 'rest_framework.authentication.BasicAuthentication',
+# "rest_framework.authentication.SessionAuthentication",
+
+#https://jpadilla.github.io/django-rest-framework-jwt/
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.DjangoModelPermissions',
+        'rest_framework.permissions.IsAuthenticated',
+        "rest_framework.permissions.DjangoModelPermissions",
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        #'rest_framework_simplejwt.authentication.JWTAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 }
+
+# AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+#     'PAGE_SIZE': 100,
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework.authentication.SessionAuthentication",
+#     ],
+#     "DEFAULT_PERMISSION_CLASSES": [
+#         "rest_framework.permissions.IsAuthenticated",
+#         "rest_framework.permissions.DjangoModelPermissions",
+#     ],
+# }
