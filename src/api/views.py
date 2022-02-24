@@ -1,26 +1,25 @@
-from django.shortcuts import render
-from django.contrib.auth.models import Group
-
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, BasePermission, IsAdminUser
-from accounts.models import User
-from accounts.serializers import UserSerializer, UserSmallSerializer, SignupSerializer, SigninSerializer, UserPutSerializer
-from django.contrib.auth import login, authenticate
-from crm.models import Client
-from crm.serializers import ClientSerializer, ClientDetailSerializer
-
 from rest_framework.response import Response
-from rest_framework import status, generics
-from rest_framework import mixins, viewsets
-from django.contrib.auth.models import Group
-from datetime import timedelta
-
+from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-# from rest_framework import permissions
+
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.models import Group
+from django_filters.rest_framework import DjangoFilterBackend
+
+from accounts.models import User
+from accounts.serializers import UserSerializer, SignupSerializer, SigninSerializer, UserDetailSerializer
+
+from crm.models import Client, Contract
+from crm.serializers import ClientSerializer, ClientDetailSerializer, \
+    ContractSerializer, ContractDetailSerializer
+
 from .permissions import ZeroDjangoModelPermissions
 from .actions import get_one_action, get_two_actions, get_three_actions, get_four_actions
 
-from django_filters.rest_framework import DjangoFilterBackend
+from datetime import timedelta
+
 
 def get_user_permissions_from_admin_interface(user, model_name):
     print("-------------------------------")
@@ -114,10 +113,12 @@ class UserViewset(ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'put', 'delete']
     lookup_field = 'user_id'  # Use to show detail page
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['email', 'groups']
 
     action_serializers = {
         'create': UserSerializer,
-        'retrieve': UserPutSerializer
+        'retrieve': UserDetailSerializer
     }
 
     def get_serializer_class(self):
@@ -149,11 +150,9 @@ class UserViewset(ModelViewSet):
         partial = True
         instance = self.get_object()
 
-        # instance.groups.add("read_only")
-        # print("instance = ", instance.email)
-
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+
         self.perform_update(serializer)
         return Response(serializer.data)
 
@@ -188,11 +187,6 @@ class UserViewset(ModelViewSet):
         # print("instance = ", instance)
         # instance.groups.add("read_only")
 
-# class MyEndpoint(mixins.ListModelMixin, viewsets.GenericViewSet):
-#     permission_classes = [IsAuthenticated, ReadPermission]
-#     http_method_names = ['get']
-#     # etc
-
 
 class ClientViewset(ModelViewSet):
     serializer_class = ClientSerializer
@@ -217,17 +211,13 @@ class ClientViewset(ModelViewSet):
 
     def get_permissions(self):
         user = self.request.user
-        print("user = ", user)
-        print(type(user))
         if not user.is_authenticated:
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
         permission_test, http_method_list = get_user_permissions_from_admin_interface(user, "Client")
         self.http_method_names = http_method_list
-        role = user.role
 
-        # if role and role == User.Types.MANAGEMENT:
         self.permission_classes = [IsAuthenticated, permission_test]
 
         return super(self.__class__, self).get_permissions()
@@ -259,25 +249,33 @@ class ClientViewset(ModelViewSet):
         partial = True
         instance = self.get_object()
 
-        # instance.groups.add("read_only")
-        # print("instance = ", instance.email)
-
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
 
     def perform_update(self, serializer):
-        users_in_group = Group.objects.get(name="read_only").user_set.all()
-        print("users_in_group = ", users_in_group)
         instance = serializer.save()
 
-        #print("serializer = ", serializer)
-        # print(serializer.validated_data["user_id"])
 
-        # contributor_projects = User.objects.filter(user_id=user_id)
+class ContractViewset(ModelViewSet):
+    serializer_class = ContractSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete']
+    lookup_field = 'contract_id'  # Use to show detail page
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_fields = ['company_name']
 
-        # print("instance = ", instance)
-        # instance.groups.add("read_only")
+    action_serializers = {
+        'create': ContractSerializer,
+        'retrieve': ContractDetailSerializer
+    }
 
-        # send_email_confirmation(user=self.request.user, modified=instance)
+    def get_serializer_class(self):
+        kwargs_dict = self.kwargs
+        if "contract_id" in kwargs_dict:
+            return self.action_serializers["retrieve"]
+        return self.action_serializers["create"]
+
+    def get_queryset(self):
+        return Contract.objects.all()
