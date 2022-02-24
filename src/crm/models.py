@@ -9,6 +9,9 @@ class Client(models.Model):
     # Client id
     client_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    # Manager id
+    client_manager = ForeignKey('accounts.User', related_name='manager_client_id', on_delete=models.SET_NULL, null=True)
+
     # client contact
     first_name = models.CharField(max_length=200, blank=True)
     last_name = models.CharField(max_length=200, blank=True)
@@ -34,3 +37,33 @@ class Client(models.Model):
     def save(self, *args, **kwargs):
         self.updating_time = datetime.now()
         super(Client, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.company_name
+
+
+class Contract(models.Model):
+    # Contract id
+    contract_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    # Client id
+    client = ForeignKey('crm.Client', related_name='author_client_id', on_delete=models.SET_NULL, null=True)
+
+    # Manager id
+    contract_manager = ForeignKey('accounts.User', related_name='manager_contract_id', on_delete=models.SET_NULL, null=True)
+
+    title = models.CharField(max_length=200, blank=False)
+
+    # Optional fields
+    class Status(models.TextChoices):
+        ACHEMINEMENT = '0', 'Acheminement'
+        NEGOCIATION = '1', 'Négociation'
+        SIGNE = '2', 'Signé'
+        TERMINE = '3', 'Terminé'
+
+    status = models.CharField(max_length=64, choices=Status.choices, default=Status.ACHEMINEMENT)
+
+    created_time = models.DateTimeField(auto_now_add=True)
+    updating_time = models.DateTimeField(null=True)
+
+
