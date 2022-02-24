@@ -5,6 +5,7 @@ from rest_framework.serializers import ModelSerializer
 from .models import User
 
 
+# CONNECTION
 class SignupSerializer(ModelSerializer):
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
 
@@ -35,6 +36,7 @@ class SigninSerializer(serializers.Serializer):
         return data
 
 
+# USER
 class UserSmallSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -65,11 +67,12 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('This user already exist')
 
 
-class UserPutSerializer(serializers.ModelSerializer):
+class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'user_id', 'role', 'groups']
-        extra_kwargs = {'groups': {'read_only': True}}
+        # extra_kwargs = {'groups': {'read_only': True}}
 
     def validate(self, data):
         return data
+
