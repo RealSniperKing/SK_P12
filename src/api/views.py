@@ -17,7 +17,8 @@ from datetime import timedelta
 
 from rest_framework_simplejwt.tokens import RefreshToken
 # from rest_framework import permissions
-from .permissions import D7896DjangoModelPermissions, CustomDjangoModelPermissions,    ReadDjangoModelPermissions, DeleteDjangoModelPermissions
+from .permissions import ZeroDjangoModelPermissions
+from .actions import get_one_action, get_two_actions, get_three_actions, get_four_actions
 
 
 def get_user_permissions_from_admin_interface(user, model_name):
@@ -40,25 +41,33 @@ def get_user_permissions_from_admin_interface(user, model_name):
         if model == model_name_lower:
             actions_list.append(action)
 
-    actions_list = sorted(actions_list)
-    actions_string = '_'.join(map(str, actions_list))
+    actions_string = '_'.join(map(str, sorted(actions_list)))
+    actions_number = len(actions_string.split("_"))
 
     print("actions_string = ", actions_string)
-    #active_permission = CustomDjangoModelPermissions
-    for action in actions_list:
-        if action == "view":
-            # CustomDjangoModelPermissions.perms_map['GET'] = ['%(app_label)s.add_%(model_name)s']
-            active_permission = ReadDjangoModelPermissions
-        elif action == "delete":
-            # CustomDjangoModelPermissions.perms_map['DELETE'] = ['%(app_label)s.add_%(model_name)s']
-            active_permission = DeleteDjangoModelPermissions
-    return active_permission
+    print("actions_number = ", actions_number)
 
-    # 'GET': ['%(app_label)s.view_%(model_name)s'],
-    # 'POST': ['%(app_label)s.add_%(model_name)s'],
-    # 'PUT': ['%(app_label)s.change_%(model_name)s'],
-    # 'PATCH': ['%(app_label)s.change_%(model_name)s'],
-    # 'DELETE': ['%(app_label)s.delete_%(model_name)s'],
+    # DEFAULT : ZERO ACTION
+    active_permission = ZeroDjangoModelPermissions
+    perm = None
+
+    # GET ACTIONS
+    if actions_number == 1:
+        perm = get_one_action(actions_string)
+
+    if actions_number == 2:
+        perm = get_two_actions(actions_string)
+
+    if actions_number == 3:
+        perm = get_three_actions(actions_string)
+
+    if actions_number == 4:
+        perm = get_four_actions(actions_string)
+
+    if perm is not None:
+        active_permission = perm
+
+    return active_permission
 
 
 # VIEWS
