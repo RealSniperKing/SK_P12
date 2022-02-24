@@ -15,13 +15,14 @@ Including another URLconf
 """
 from django.urls import path, include, re_path
 from rest_framework import routers
-from .views import UserViewset, ClientViewset, SigninViewset
+from .views import UserViewset, ClientViewset, SigninViewset, ContractViewset
 
 # Create router
 router = routers.SimpleRouter()
+router.register('signin', SigninViewset, basename='signin')
 router.register('users', UserViewset, basename='users')
 router.register('clients', ClientViewset, basename='clients')
-router.register('signin', SigninViewset, basename='signin')
+router.register('contracts', ContractViewset, basename='contracts')
 
 app_name = "api"
 urlpatterns = [
