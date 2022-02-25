@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.urls import path, include, re_path
 from rest_framework import routers
-from .views import UserViewset, ClientViewset, SigninViewset, ContractViewset
+from .views import UserViewset, ClientViewset, SigninViewset, ContractViewset, EventViewset
 
 # Create router
 router = routers.SimpleRouter()
@@ -23,6 +23,7 @@ router.register('signin', SigninViewset, basename='signin')
 router.register('users', UserViewset, basename='users')
 router.register('clients', ClientViewset, basename='clients')
 router.register('contracts', ContractViewset, basename='contracts')
+router.register('events', EventViewset, basename='events')
 
 app_name = "api"
 urlpatterns = [
