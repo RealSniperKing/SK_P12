@@ -3,22 +3,27 @@ from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, 
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import Group
 from django_filters.rest_framework import DjangoFilterBackend
 
 from accounts.models import User
 from accounts.serializers import UserSerializer, SignupSerializer, SigninSerializer, UserDetailSerializer
 
-from crm.models import Client, Contract
+from crm.models import Client, Contract, Event
 from crm.serializers import ClientSerializer, ClientDetailSerializer, \
-    ContractSerializer, ContractDetailSerializer
+    ContractSerializer, ContractDetailSerializer, EventSerializer
 
 from .permissions import ZeroDjangoModelPermissions
 from .actions import get_one_action, get_two_actions, get_three_actions, get_four_actions
 
 from datetime import timedelta
+
+import logging
+# LOG
+logger = logging.getLogger(__name__)
 
 
 def get_user_permissions_from_admin_interface(user, model_name):
@@ -71,11 +76,11 @@ def get_user_permissions_from_admin_interface(user, model_name):
     return active_permission, http_method_list
 
 
-# VIEWS
-
+# USERS
 class SigninViewset(ModelViewSet):
     serializer_class = SigninSerializer
     http_method_names = ['post']
+    permission_classes = []
 
     def get_queryset(self):
         return User.objects.all()
@@ -107,11 +112,22 @@ class SigninViewset(ModelViewSet):
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class SignoutViewset(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        """Logout"""
+        print(request.user)
+        logout(request)
+        return Response({"success": True}, status=status.HTTP_200_OK)
+
+
+
 class UserViewset(ModelViewSet):
     """ Comments list"""
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'put', 'delete']
+    http_method_names = []
     lookup_field = 'user_id'  # Use to show detail page
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['email', 'groups']
@@ -126,6 +142,18 @@ class UserViewset(ModelViewSet):
         if "user_id" in kwargs_dict:
             return self.action_serializers["retrieve"]
         return self.action_serializers["create"]
+
+    def get_permissions(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            self.permission_classes = [IsAuthenticated]
+            return super(self.__class__, self).get_permissions()
+
+        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "User")
+        self.permission_classes = [IsAuthenticated, custom_permissions]
+        # self.http_method_names = http_method_list
+
+        return super(self.__class__, self).get_permissions()
 
     def get_queryset(self):
         return User.objects.all()
@@ -188,14 +216,19 @@ class UserViewset(ModelViewSet):
         # instance.groups.add("read_only")
 
 
+
+
+
+# CLIENTS
 class ClientViewset(ModelViewSet):
+    logger.warning('ClientViewset')
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = []
+    http_method_names = ['get', 'post', 'put', 'delete']
     lookup_field = 'client_id'  # Use to show detail page
     # queryset = Client.objects.all()
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['company_name']
+    filterset_fields = ['company_name', 'client_manager']
 
     action_serializers = {
         'create': ClientSerializer,
@@ -203,6 +236,7 @@ class ClientViewset(ModelViewSet):
     }
 
     def get_serializer_class(self):
+        logger.warning('Platform is running at risk')
         kwargs_dict = self.kwargs
         #if self.request.user.is_staff:
         if "client_id" in kwargs_dict:
@@ -215,14 +249,21 @@ class ClientViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        permission_test, http_method_list = get_user_permissions_from_admin_interface(user, "Client")
-        self.http_method_names = http_method_list
-
-        self.permission_classes = [IsAuthenticated, permission_test]
+        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "Client")
+        self.permission_classes = [IsAuthenticated, custom_permissions]
+        # self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
 
     def get_queryset(self):
+        groups_list = Group.objects.all()
+        print("groups_list =", groups_list)
+
+        group_name = Group.objects.filter(name='Equipe de vente')
+        print("group_name = ", group_name)
+
+        print(User.objects.filter(groups__name='Equipe de vente'))
+
         return Client.objects.all()
 
     def create(self, request):
@@ -258,6 +299,7 @@ class ClientViewset(ModelViewSet):
         instance = serializer.save()
 
 
+# CONTRACTS
 class ContractViewset(ModelViewSet):
     serializer_class = ContractSerializer
     permission_classes = [IsAuthenticated]
@@ -277,5 +319,56 @@ class ContractViewset(ModelViewSet):
             return self.action_serializers["retrieve"]
         return self.action_serializers["create"]
 
+    def get_permissions(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            self.permission_classes = [IsAuthenticated]
+            return super(self.__class__, self).get_permissions()
+
+        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "Contract")
+        self.permission_classes = [IsAuthenticated, custom_permissions]
+        # self.http_method_names = http_method_list
+
+        return super(self.__class__, self).get_permissions()
+
     def get_queryset(self):
         return Contract.objects.all()
+
+
+# EVENTS
+class EventViewset(ModelViewSet):
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete']
+    lookup_field = 'event_id'  # Use to show detail page
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_fields = ['company_name']
+
+    action_serializers = {
+        'create': EventSerializer,
+        'retrieve': EventSerializer
+    }
+
+    def get_serializer_class(self):
+        kwargs_dict = self.kwargs
+        #if self.request.user.is_staff:
+        if "client_id" in kwargs_dict:
+            return self.action_serializers["retrieve"]
+        return self.action_serializers["create"]
+
+    def get_permissions(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            self.permission_classes = [IsAuthenticated]
+            return super(self.__class__, self).get_permissions()
+
+        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "Event")
+        self.permission_classes = [IsAuthenticated, custom_permissions]
+        # self.http_method_names = http_method_list
+
+
+        return super(self.__class__, self).get_permissions()
+
+    def get_queryset(self):
+
+        return Event.objects.all()
