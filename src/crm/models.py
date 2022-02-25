@@ -66,4 +66,26 @@ class Contract(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     updating_time = models.DateTimeField(null=True)
 
+    def __str__(self):
+        return self.title
+
+
+class Event(models.Model):
+    event_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    contract = ForeignKey('crm.Contract', related_name='event_contract_id', on_delete=models.SET_NULL, null=True)
+
+    event_manager = ForeignKey('accounts.User', related_name='event_manager_id', on_delete=models.SET_NULL, null=True)
+
+    name = models.CharField(max_length=200, blank=False)
+
+    date_event_start = models.DateTimeField(null=True)
+    date_event_end = models.DateTimeField(null=True)
+
+    created_time = models.DateTimeField(auto_now_add=True)
+    updating_time = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.name
+
 
