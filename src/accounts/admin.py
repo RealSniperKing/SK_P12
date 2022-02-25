@@ -67,24 +67,34 @@ class MyUserAdmin(BaseUserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', 'first_name', 'is_admin')
+    list_display = ('email', 'user_id', 'is_active', 'is_staff', 'is_admin')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name',)}),
-        ('Permissions', {'fields': ('role', 'is_admin',)}),
+        ('Personal info', {'fields': ()}),
+        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_admin',)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'password1', 'password2'),
+            'fields': ('email', 'user_id', 'password1', 'password2'),
         }),
     )
     search_fields = ('email',)
     ordering = ('email',)
-    filter_horizontal = ()
+    filter_horinzontal = ()
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_admin
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_admin
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_admin
+
 
 
 admin.site.register(User, MyUserAdmin)
