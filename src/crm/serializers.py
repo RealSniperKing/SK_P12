@@ -1,15 +1,23 @@
 from rest_framework import serializers
 
-from .models import Client, Contract
+from .models import Client, Contract, Event
 from accounts.models import User
 from accounts.serializers import UserSerializer, UserSmallSerializer
+
+import logging
+# LOG
+logger = logging.getLogger(__name__)
+
+logger.warning('SERIALIZER')
 
 
 # CLIENT
 class ClientSerializer(serializers.ModelSerializer):
+    client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
+
     class Meta:
         model = Client
-        fields = ['email', 'company_name', 'client_id']
+        fields = ['email', 'company_name', 'client_id', 'client_manager']
         extra_kwargs = {
             'email': {'write_only': True},
             'client_id': {'read_only': True},
@@ -21,16 +29,12 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class ClientDetailSerializer(serializers.ModelSerializer):
-    # author = UserSerializer(many=False, read_only=True).get_fields()['email']
-    # sales_contact = UserSerializer(many=False, read_only=True).get_fields()['email']
     author = serializers.SlugRelatedField(many=False, read_only=True, slug_field='email')
-    # author = UserSmallSerializer(many=False, read_only=True)
-    # sales_contact = serializers.SlugRelatedField(many=False, read_only=True, slug_field='email')
-    # sales_contact = UserSmallSerializer(many=False, read_only=False)
+    client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
         model = Client
-        fields = ['client_id',
+        fields = ['client_id', 'client_manager',
                   'first_name', 'last_name', 'email', 'phone', 'mobile',
                   'company_name', 'address', 'address_complement', 'postal_code', 'city',
                   'author', 'created_time', 'updating_time',
@@ -48,7 +52,7 @@ class ClientDetailSerializer(serializers.ModelSerializer):
 
 class ContractSerializer(serializers.ModelSerializer):
     client = serializers.SlugRelatedField(slug_field='company_name', queryset=Client.objects.all())
-    contract_manager = serializers.SlugRelatedField(slug_field='email', queryset=User.objects.all())
+    contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
         model = Contract
@@ -60,7 +64,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
 class ContractDetailSerializer(serializers.ModelSerializer):
     client = serializers.SlugRelatedField(slug_field='company_name', queryset=Client.objects.all())
-    contract_manager = serializers.SlugRelatedField(slug_field='email', queryset=User.objects.all())
+    contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
     # status = serializers.SlugRelatedField(slug_field='email', queryset=Contract.objects.all())
     class Meta:
         model = Contract
@@ -75,3 +79,13 @@ class ContractDetailSerializer(serializers.ModelSerializer):
 
 
 # EVENT
+class EventSerializer(serializers.ModelSerializer):
+    contract = serializers.SlugRelatedField(slug_field='title', queryset=Contract.objects.all())
+    event_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
+
+    class Meta:
+        model = Event
+        fields = ['event_id', 'contract', 'event_manager', 'name']
+
+    def validate(self, data):
+        return data
