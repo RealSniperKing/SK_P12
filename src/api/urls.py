@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.urls import path, include, re_path
 from rest_framework import routers
-from .views import UserViewset, ClientViewset, SigninViewset, ContractViewset, EventViewset
+from .views import UserViewset, ClientViewset, SigninViewset, ContractViewset, EventViewset, SignoutViewset
 
 # Create router
 router = routers.SimpleRouter()
@@ -28,5 +28,6 @@ router.register('events', EventViewset, basename='events')
 app_name = "api"
 urlpatterns = [
     path('api/', include(router.urls)),
+    path('api/signout', SignoutViewset.as_view(), name='signout'),
     re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
