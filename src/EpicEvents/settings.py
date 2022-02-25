@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
+import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -167,17 +168,37 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
-# AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+# https://docs.djangoproject.com/fr/4.0/howto/logging/#logging-how-to
+LOGGING = {
+    'version': 1,                       # the dictConfig format version
+    'disable_existing_loggers': False,  # retain the default loggers
 
-
-# REST_FRAMEWORK = {
-#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-#     'PAGE_SIZE': 100,
-#     "DEFAULT_AUTHENTICATION_CLASSES": [
-#         "rest_framework.authentication.SessionAuthentication",
-#     ],
-#     "DEFAULT_PERMISSION_CLASSES": [
-#         "rest_framework.permissions.IsAuthenticated",
-#         "rest_framework.permissions.DjangoModelPermissions",
-#     ],
-# }
+    'handlers': {
+            'file_api': {
+                'class': 'logging.FileHandler',
+                'filename': 'general_api.log',
+            },
+            'file_accounts': {
+                'class': 'logging.FileHandler',
+                'filename': 'general_accounts.log',
+            },
+            'file_crm': {
+                'class': 'logging.FileHandler',
+                'filename': 'general_crm.log',
+            },
+        },
+    'loggers': {
+        'api': {
+            'level': 'DEBUG',
+            'handlers': ['file_api'],
+        },
+        'accounts': {
+            'level': 'DEBUG',
+            'handlers': ['file_accounts'],
+        },
+        'crm': {
+            'level': 'DEBUG',
+            'handlers': ['file_crm'],
+        },
+    },
+}
