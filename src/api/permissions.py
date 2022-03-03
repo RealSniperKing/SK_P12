@@ -2,7 +2,7 @@ import copy
 
 from rest_framework import permissions
 from rest_framework.permissions import DjangoModelPermissions
-
+from accounts.models import User, ManagementGroupName
 
 class D7896DjangoModelPermissions(DjangoModelPermissions):
     # def __init__(self):
@@ -20,197 +20,39 @@ class D7896DjangoModelPermissions(DjangoModelPermissions):
     }
 
 
-# ZERO ACTION
-class ZeroDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
+class IsManagerOrAdminManager(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
 
-# ONE ACTION
-class AddDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
+        model_name = obj._meta.model.__name__
+        user = request.user
 
+        # Admin permission
+        if user.is_admin:
+            return True
 
-class ChangeDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
+        if user in User.objects.filter(groups__name=ManagementGroupName.objects.first().name):
+            return True
+
+        # Client permission
+        if model_name == "Client":
+            return obj.client_manager == user
+
+        # Contract permission
+        if model_name == "Contract":
+            return obj.contract_manager == user
+
+        # Event permission
+        if model_name == "Event":
+            return obj.event_manager == user
 
 
-class DeleteDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        #'OPTIONS': [],
-        #'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
 
 
-class ViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
 
 
-# TWO ACTIONS
-class AddChangeDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
 
-
-class AddDeleteDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class AddViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class ChangeDeleteDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class ChangeViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class DeleteViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-# THREE ACTIONS
-class AddChangeDeleteDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        #'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class AddChangeViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        #'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class AddDeleteViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        #'PUT': ['%(app_label)s.change_%(model_name)s'],
-        #'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-# FOUR ACTIONS
-class ChangeDeleteViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        #'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-
-class AddChangeDeleteViewDjangoModelPermissions(DjangoModelPermissions):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PUT': ['%(app_label)s.change_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
