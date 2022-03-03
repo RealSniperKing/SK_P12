@@ -18,6 +18,12 @@ class ContractAdmin(admin.ModelAdmin):
     list_per_page = 25                     # number of items per page
     ordering = ['-updating_time', 'title']       # Default results ordering
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["client"].required = False
+        form.base_fields["contract_manager"].required = False
+        return form
+
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ('name', 'event_id')  # fields to display in the listing
