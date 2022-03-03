@@ -34,11 +34,13 @@ class CustomUserManager(BaseUserManager):
         user.save()
         return user
 
+
 def getGroupNames():
     print("------------ getGroupNames ------------")
     groups = Group.objects.all().values_list('name', flat=True)
     print(groups)
     return zip(groups, groups)
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     # Required fields
@@ -80,6 +82,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+
+    # class Meta:
+    #     ordering = ['email']
 
     def __str__(self):
         return self.email
