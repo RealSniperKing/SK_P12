@@ -16,6 +16,7 @@ from django.contrib.auth.models import Group
 #
 #     def __str__(self):
 #         return self.role_permission
+from rest_framework.exceptions import ValidationError
 
 
 class CustomUserManager(BaseUserManager):
@@ -88,3 +89,19 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+class ManagementGroupName(models.Model):
+    name = models.CharField(max_length=200, blank=False)
+
+    def save(self, *args, **kwargs):
+        if not self.pk and ManagementGroupName.objects.exists():
+            # if you'll not check for self.pk, then error will also raised in update of exists model
+            raise ValidationError('There is can be only one ManagementGroupName instance')
+        return super(ManagementGroupName, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name_plural = "Management group name"
+
+    def __str__(self):
+        return self.name
