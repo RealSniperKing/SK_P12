@@ -72,14 +72,14 @@ class MyUserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ()}),
-        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_admin',)}),
+        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_admin', 'groups')}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'user_id', 'password1', 'password2'),
+            'fields': ('email', 'groups', 'password1', 'password2'),
         }),
     )
     search_fields = ('email',)
@@ -94,7 +94,6 @@ class MyUserAdmin(BaseUserAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_admin
-
 
 
 admin.site.register(User, MyUserAdmin)
