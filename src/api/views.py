@@ -16,17 +16,16 @@ from crm.models import Client, Contract, Event
 from crm.serializers import ClientSerializer, ClientDetailSerializer, \
     ContractSerializer, ContractDetailSerializer, EventSerializer
 
-from .permissions import ZeroDjangoModelPermissions
-from .actions import get_one_action, get_two_actions, get_three_actions, get_four_actions
+from .permissions import IsManagerOrAdminManager
+from .actions import convert_actions_to_http_method_list
 
 from datetime import timedelta
-
 import logging
 # LOG
 logger = logging.getLogger(__name__)
 
 
-def get_user_permissions_from_admin_interface(user, model_name):
+def permissions_from_admin_groups(user, model_name):
     print("-------------------------------")
     model_name_lower = model_name.lower()
     all_groups = user.groups.all()
@@ -47,33 +46,14 @@ def get_user_permissions_from_admin_interface(user, model_name):
             actions_list.append(action)
 
     actions_string = '_'.join(map(str, sorted(actions_list)))
-    actions_number = len(actions_string.split("_"))
 
-    print("actions_string = ", actions_string)
-    print("actions_number = ", actions_number)
+    http_method_list = convert_actions_to_http_method_list(actions_string)
 
-    # DEFAULT : ZERO ACTION
-    active_permission = ZeroDjangoModelPermissions
-    perm = None
-    http_method_list = []
+    if user.is_admin:
+        #'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'
+        http_method_list = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
 
-    # GET ACTIONS
-    if actions_number == 1:
-        perm, http_method_list = get_one_action(actions_string)
-
-    if actions_number == 2:
-        perm, http_method_list = get_two_actions(actions_string)
-
-    if actions_number == 3:
-        perm, http_method_list = get_three_actions(actions_string)
-
-    if actions_number == 4:
-        perm, http_method_list = get_four_actions(actions_string)
-
-    if perm is not None:
-        active_permission = perm
-
-    return active_permission, http_method_list
+    return http_method_list
 
 
 # USERS
@@ -122,7 +102,6 @@ class SignoutViewset(APIView):
         return Response({"success": True}, status=status.HTTP_200_OK)
 
 
-
 class UserViewset(ModelViewSet):
     """ Comments list"""
     serializer_class = UserSerializer
@@ -149,11 +128,17 @@ class UserViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "User")
-        self.permission_classes = [IsAuthenticated, custom_permissions]
-        # self.http_method_names = http_method_list
+        http_method_list = permissions_from_admin_groups(user, "User")
+        self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
+
+    def dispatch(self, *args, **kwargs):
+        """Use dispatch to update http_method_names"""
+        response = super(UserViewset, self).dispatch(*args, **kwargs)
+        # response['Cache-Control'] = 'no-cache'
+        response['Allow'] = ', '.join(self.http_method_names)
+        return response
 
     def get_queryset(self):
         return User.objects.all()
@@ -216,19 +201,16 @@ class UserViewset(ModelViewSet):
         # instance.groups.add("read_only")
 
 
-
-
-
 # CLIENTS
 class ClientViewset(ModelViewSet):
     logger.warning('ClientViewset')
     serializer_class = ClientSerializer
-    permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'put', 'delete']
+    permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
+    http_method_names = []
     lookup_field = 'client_id'  # Use to show detail page
     # queryset = Client.objects.all()
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['company_name', 'client_manager']
+    filterset_fields = ['company_name', 'client_id', 'client_manager']
 
     action_serializers = {
         'create': ClientSerializer,
@@ -249,11 +231,18 @@ class ClientViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "Client")
-        self.permission_classes = [IsAuthenticated, custom_permissions]
-        # self.http_method_names = http_method_list
+        http_method_list = permissions_from_admin_groups(user, "Client")
+
+        self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
+
+    def dispatch(self, *args, **kwargs):
+        """Use dispatch to update http_method_names"""
+        response = super(ClientViewset, self).dispatch(*args, **kwargs)
+        # response['Cache-Control'] = 'no-cache'
+        response['Allow'] = ', '.join(self.http_method_names)
+        return response
 
     def get_queryset(self):
         groups_list = Group.objects.all()
@@ -302,11 +291,11 @@ class ClientViewset(ModelViewSet):
 # CONTRACTS
 class ContractViewset(ModelViewSet):
     serializer_class = ContractSerializer
-    permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'put', 'delete']
+    permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
+    http_method_names = []
     lookup_field = 'contract_id'  # Use to show detail page
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['company_name']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title', 'client', 'contract_manager']
 
     action_serializers = {
         'create': ContractSerializer,
@@ -325,11 +314,18 @@ class ContractViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "Contract")
-        self.permission_classes = [IsAuthenticated, custom_permissions]
-        # self.http_method_names = http_method_list
+        http_method_list = permissions_from_admin_groups(user, "Contract")
+        self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
+
+    def dispatch(self, *args, **kwargs):
+        """Use dispatch to update http_method_names"""
+        response = super(ContractViewset, self).dispatch(*args, **kwargs)
+        print("--------")
+        # response['Cache-Control'] = 'no-cache'
+        response['Allow'] = ', '.join(self.http_method_names)
+        return response
 
     def get_queryset(self):
         return Contract.objects.all()
@@ -338,7 +334,7 @@ class ContractViewset(ModelViewSet):
 # EVENTS
 class EventViewset(ModelViewSet):
     serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = ['get', 'post', 'put', 'delete']
     lookup_field = 'event_id'  # Use to show detail page
     # filter_backends = [DjangoFilterBackend]
@@ -362,12 +358,17 @@ class EventViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        custom_permissions, http_method_list = get_user_permissions_from_admin_interface(user, "Event")
-        self.permission_classes = [IsAuthenticated, custom_permissions]
-        # self.http_method_names = http_method_list
-
+        http_method_list = permissions_from_admin_groups(user, "Event")
+        self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
+
+    def dispatch(self, *args, **kwargs):
+        """Use dispatch to update http_method_names"""
+        response = super(EventViewset, self).dispatch(*args, **kwargs)
+        # response['Cache-Control'] = 'no-cache'
+        response['Allow'] = ', '.join(self.http_method_names)
+        return response
 
     def get_queryset(self):
 
