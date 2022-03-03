@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
-from .models import User
+from .models import User, ManagementGroupName
 from django import forms
 
 from django.contrib import admin
@@ -96,5 +96,13 @@ class MyUserAdmin(BaseUserAdmin):
         return request.user.is_admin
 
 
+class ManagementGroupNameAdmin(admin.ModelAdmin):
+    list_display = ('name',)  # fields to display in the listing
+    empty_value_display = '-empty-'        # display value when empty
+    list_filter = ()      # enable results filtering
+    list_per_page = 25                     # number of items per page
+    ordering = ['name']       # Default results ordering
+
 admin.site.register(User, MyUserAdmin)
+admin.site.register(ManagementGroupName, ManagementGroupNameAdmin)
 
