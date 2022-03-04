@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
-import logging
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -172,33 +172,57 @@ REST_FRAMEWORK = {
 LOGGING = {
     'version': 1,                       # the dictConfig format version
     'disable_existing_loggers': False,  # retain the default loggers
-
+    'formatters': {
+            'verbose': {'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'},
+            'simple': {'format': '%(levelname)s %(asctime)s  %(message)s', 'datefmt': '%Y-%m-%d %H:%M'},
+        },
     'handlers': {
             'file_api': {
-                'class': 'logging.FileHandler',
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_api.log',
+                "formatter": "simple",
+                'when': 'M',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,
             },
             'file_accounts': {
-                'class': 'logging.FileHandler',
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_accounts.log',
+                "formatter": "simple",
+                'when': 'M',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,
             },
             'file_crm': {
-                'class': 'logging.FileHandler',
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_crm.log',
+                "formatter": "simple",
+                'when': 'M',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,  # Set delay to True to fix permission error
             },
         },
     'loggers': {
         'api': {
             'level': 'DEBUG',
             'handlers': ['file_api'],
+            'propagate': False,
         },
         'accounts': {
             'level': 'DEBUG',
             'handlers': ['file_accounts'],
+            'propagate': False,
         },
         'crm': {
             'level': 'DEBUG',
             'handlers': ['file_crm'],
+            'propagate': False,
         },
     },
 }
