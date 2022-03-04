@@ -6,9 +6,9 @@ from accounts.serializers import UserSerializer, UserSmallSerializer
 
 import logging
 # LOG
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
-logger.warning('SERIALIZER')
+# logger.warning('SERIALIZER')
 
 
 # CLIENT
