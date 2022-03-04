@@ -20,13 +20,21 @@ from .permissions import IsManagerOrAdminManager
 from .actions import convert_actions_to_http_method_list
 
 from datetime import timedelta
-import logging
-# LOG
+
+# import the logging library
+import logging, logging.handlers
+
+# Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+logger.warning('ClientViewset')
+logger.warning('Platform is running at risk')
 
 
 def permissions_from_admin_groups(user, model_name):
     print("-------------------------------")
+    print(user)
     model_name_lower = model_name.lower()
     all_groups = user.groups.all()
     print("all_groups = ", all_groups)
@@ -46,7 +54,7 @@ def permissions_from_admin_groups(user, model_name):
             actions_list.append(action)
 
     actions_string = '_'.join(map(str, sorted(actions_list)))
-
+    print("actions_string = ", actions_string)
     http_method_list = convert_actions_to_http_method_list(actions_string)
 
     if user.is_admin:
@@ -203,7 +211,7 @@ class UserViewset(ModelViewSet):
 
 # CLIENTS
 class ClientViewset(ModelViewSet):
-    logger.warning('ClientViewset')
+
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = []
@@ -218,7 +226,6 @@ class ClientViewset(ModelViewSet):
     }
 
     def get_serializer_class(self):
-        logger.warning('Platform is running at risk')
         kwargs_dict = self.kwargs
         #if self.request.user.is_staff:
         if "client_id" in kwargs_dict:
