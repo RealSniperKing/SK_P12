@@ -55,6 +55,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'EpicEvents.middleware.PageNotFoundMiddleware',
+    'EpicEvents.middleware.PageFatalErrorMiddleware'
 ]
 
 ROOT_URLCONF = 'EpicEvents.urls'
@@ -165,7 +167,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'EXCEPTION_HANDLER': 'api.utils.custom_exception_handler'
 }
 
 # https://docs.djangoproject.com/fr/4.0/howto/logging/#logging-how-to
@@ -182,7 +185,7 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_api.log',
                 "formatter": "simple",
-                'when': 'M',
+                'when': 'D',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,
@@ -192,7 +195,7 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_accounts.log',
                 "formatter": "simple",
-                'when': 'M',
+                'when': 'D',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,
@@ -202,7 +205,17 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_crm.log',
                 "formatter": "simple",
-                'when': 'M',
+                'when': 'D',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,  # Set delay to True to fix permission error
+            },
+            'file_pagenotfound': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': 'general_pagenotfound.log',
+                "formatter": "simple",
+                'when': 'D',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,  # Set delay to True to fix permission error
@@ -222,6 +235,11 @@ LOGGING = {
         'crm': {
             'level': 'DEBUG',
             'handlers': ['file_crm'],
+            'propagate': False,
+        },
+        'EpicEvents': {
+            'level': 'DEBUG',
+            'handlers': ['file_pagenotfound'],
             'propagate': False,
         },
     },
