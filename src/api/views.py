@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
 
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import Group
@@ -23,7 +24,7 @@ from datetime import timedelta
 
 # import the logging library
 import logging, logging.handlers
-
+from .utils_operations import is_valid_uuid
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,16 @@ def permissions_from_admin_groups(user, model_name):
 
     return http_method_list
 
+
+def error500(request):
+    print("------------- Test error 500 -------------")
+    raise NotFound(detail="Fatal error", code=500)
+
+
+# def error404(request):
+#     print("------------- Error -------------")
+#     logger.error(request.data)
+#     raise NotFound(detail="Error 404, page not found", code=404)
 
 # USERS
 class SigninViewset(ModelViewSet):
@@ -157,10 +168,13 @@ class UserViewset(ModelViewSet):
         if serializer.is_valid():
             new_user = User.objects.create_user(
                 email=serializer.validated_data["email"],
-                password=serializer.validated_data["password"]
+                password=serializer.validated_data["password"],
             )
             new_user.save()
-            return Response({"success": True}, status=status.HTTP_200_OK)
+            group_name = serializer.validated_data["role"]
+            if group_name:
+                new_user.groups.add(Group.objects.get(name=serializer.validated_data["role"]))
+            return Response({"success": True, "user_id": new_user.user_id}, status=status.HTTP_200_OK)
 
         errors = serializer.errors
         errors["success"] = False
@@ -168,50 +182,40 @@ class UserViewset(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         print("UPDATE")
-        partial = True
         instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+        print("serializer = ", serializer)
+        if serializer.is_valid():
+            # serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
 
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        errors = serializer.errors
+        errors["success"] = False
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
-        group_name_in_field = serializer.validated_data["role"]
-
-        users_in_group = Group.objects.get(name=group_name_in_field).user_set.all()
-        print("users_in_group = ", users_in_group)
-
+        # group_name_in_field = serializer.validated_data["role"]
+        #
+        # users_in_group = Group.objects.get(name=group_name_in_field).user_set.all()
+        # print("users_in_group = ", users_in_group)
         instance = serializer.save()
 
-        # print("instance = ", instance)
-        # print('serializer.data["user_id"] = ', serializer.data["user_id"])
-        #
-        # # Get groups
-        # groups_list = Group.objects.all()
-        # print("groups_list =", groups_list)
-        #
-        # # Add to group
-        # user_ob = User.objects.get(user_id=instance.user_id)
-        # print("user_ob = ", user_ob)
-        #
-        # # Remove all groups for this user
-        # user_ob.groups.clear()
-        #
-        # # Assign specific group to user
-        # user_ob.groups.add(Group.objects.get(name=group_name_in_field))
+        user_ob = User.objects.get(user_id=instance.user_id)
+        role_field = "role"
+        if role_field in serializer.validated_data:
+            group_name = serializer.validated_data[role_field]
+            if group_name:
+                user_ob.groups.clear()
+                user_ob.groups.add(Group.objects.get(name=serializer.validated_data["role"]))
 
-
-        # contributor_projects = User.objects.filter(user_id=user_id)
-
-        # print("instance = ", instance)
-        # instance.groups.add("read_only")
-
+        # errors = serializer.errors
+        # errors["success"] = False
+        # return Response(errors, status.HTTP_400_BAD_REQUEST)
 
 # CLIENTS
 class ClientViewset(ModelViewSet):
-
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = []
@@ -228,7 +232,9 @@ class ClientViewset(ModelViewSet):
     def get_serializer_class(self):
         kwargs_dict = self.kwargs
         #if self.request.user.is_staff:
-        if "client_id" in kwargs_dict:
+
+        id_name = "client_id"
+        if id_name in kwargs_dict:
             return self.action_serializers["retrieve"]
         return self.action_serializers["create"]
 
@@ -261,6 +267,18 @@ class ClientViewset(ModelViewSet):
         print(User.objects.filter(groups__name='Equipe de vente'))
 
         return Client.objects.all()
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     print("//////////")
+    #     kwargs_dict = self.kwargs
+    #     id_name = "client_id"
+    #     if id_name in kwargs_dict:
+    #         client_id = kwargs_dict[id_name]
+    #         client_uuid = is_valid_uuid(client_id)
+    #         print("client_uuid = ", client_uuid)
+    #         if not client_uuid:
+    #             print("no uuid")
+    #             return error404(self.request)
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
