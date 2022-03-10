@@ -68,7 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         CLIENT = '3', 'Client'
 
     print(getGroupNames())
-    role = models.CharField(max_length=64, choices=getGroupNames(), default=Types.CLIENT)
+    role = models.CharField(max_length=64, choices=getGroupNames(), blank=True)
 
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
