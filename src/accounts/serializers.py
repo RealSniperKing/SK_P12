@@ -47,16 +47,11 @@ class UserSmallSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
-    #client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
-    # groups = serializers.SlugRelatedField(slug_field='name', allow_null=True, queryset=Group.objects.all())
-    # groups = serializers.SlugRelatedField(slug_field='name', allow_null=True, queryset=Group.objects.all())
-    # groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_null=True, queryset=Group.objects.all())
-    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
-    # group_name = serializers.SlugRelatedField(slug_field='name', write_only=True, allow_null=True, queryset=Group.objects.all())
+    groups = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Group.objects.all())
 
     class Meta:
         model = User
-        fields = ['email', 'user_id', 'password', 'role', 'confirm_password', 'groups']
+        fields = ['email', 'user_id', 'password', 'confirm_password', 'groups']
         extra_kwargs = {'email': {'read_only': True},
                         'password': {'write_only': True,
                                      'style': {'input_type': 'password'}},
@@ -88,13 +83,22 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['name']
+
+    def validate(self, data):
+        return data
+
+
 class UserDetailSerializer(serializers.ModelSerializer):
-    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+    groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_empty=True, queryset=Group.objects.all())
 
     class Meta:
         model = User
-        fields = ['email', 'user_id', 'role', 'groups']
-        extra_kwargs = {'groups': {'read_only': True}}
+        fields = ['email', 'user_id', 'groups']
+        # extra_kwargs = {'groups': {'required': False}}
 
     def validate(self, data):
         return data
