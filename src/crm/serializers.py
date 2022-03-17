@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Client, Contract, Event
+from .models import Customer, Contract, Event
 from accounts.models import User
 from accounts.serializers import UserSerializer, UserSmallSerializer
 
@@ -11,12 +11,12 @@ import logging
 # logger.warning('SERIALIZER')
 
 
-# CLIENT
+# Customer
 class ClientSerializer(serializers.ModelSerializer):
     client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
-        model = Client
+        model = Customer
         fields = ['email', 'company_name', 'client_id', 'client_manager']
         extra_kwargs = {
             'email': {'write_only': True},
@@ -33,7 +33,7 @@ class ClientDetailSerializer(serializers.ModelSerializer):
     client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
-        model = Client
+        model = Customer
         fields = ['client_id', 'client_manager',
                   'first_name', 'last_name', 'email', 'phone', 'mobile',
                   'company_name', 'address', 'address_complement', 'postal_code', 'city',
@@ -51,7 +51,7 @@ class ClientDetailSerializer(serializers.ModelSerializer):
 # CONTRACT
 
 class ContractSerializer(serializers.ModelSerializer):
-    client = serializers.SlugRelatedField(slug_field='company_name', queryset=Client.objects.all())
+    client = serializers.SlugRelatedField(slug_field='company_name', queryset=Customer.objects.all())
     contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
@@ -63,7 +63,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
 
 class ContractDetailSerializer(serializers.ModelSerializer):
-    client = serializers.SlugRelatedField(slug_field='company_name', queryset=Client.objects.all())
+    client = serializers.SlugRelatedField(slug_field='company_name', queryset=Customer.objects.all())
     contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
     # status = serializers.SlugRelatedField(slug_field='email', queryset=Contract.objects.all())
     class Meta:
