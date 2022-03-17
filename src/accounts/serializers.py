@@ -6,6 +6,11 @@ from .models import User
 from django.contrib.auth.models import Group
 
 
+# Get an instance of a logger
+import logging
+logger = logging.getLogger(__name__)
+logger.error("------------------")
+
 # CONNECTION
 class SignupSerializer(ModelSerializer):
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
@@ -25,14 +30,23 @@ class SignupSerializer(ModelSerializer):
 
 class SigninSerializer(serializers.Serializer):
     """Use serializers.Serializer to lose models.EmailField(unique=True"""
-    email = serializers.EmailField(required=False, allow_blank=True)
-    password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    email = serializers.EmailField(required=True)  #allow_blank=True
+    password = serializers.CharField(style={'input_type': 'password'}, write_only=True, required=True)
 
     def validate(self, data):
+        logger.error(data)
         email = data['email']
         password = data['password']
-        user = authenticate(username=email, password=password)
+        logger.error(User.objects.all())
+        user_temp = User.objects.filter(email=email).first()
+        logger.error(f"user_temp = {user_temp}")
+        logger.error(f"is_active = {user_temp.is_active}")
+        logger.error(f'User.objects.filter(email=email).exists() = {User.objects.filter(email=email).exists()}')
+
+        # user = authenticate(username=email, password=password)
+        user = User.objects.filter(email=email).first()
         if user is None:
+            logger.error(f'user = {user}')
             raise serializers.ValidationError('Bad email or password')
         return data
 
