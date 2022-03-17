@@ -55,9 +55,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'EpicEvents.middleware.PageNotFoundMiddleware',
-    'EpicEvents.middleware.PageFatalErrorMiddleware'
+    #'EpicEvents.middleware.PageNotFoundMiddleware',
+    #'EpicEvents.middleware.PageFatalErrorMiddleware'
 ]
+
 
 ROOT_URLCONF = 'EpicEvents.urls'
 
@@ -171,6 +172,8 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'api.utils.custom_exception_handler'
 }
 
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+
 # https://docs.djangoproject.com/fr/4.0/howto/logging/#logging-how-to
 LOGGING = {
     'version': 1,                       # the dictConfig format version
@@ -185,7 +188,7 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_api.log',
                 "formatter": "simple",
-                'when': 'D',
+                'when': 'midnight',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,
@@ -195,7 +198,7 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_accounts.log',
                 "formatter": "simple",
-                'when': 'D',
+                'when': 'midnight',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,
@@ -205,7 +208,7 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_crm.log',
                 "formatter": "simple",
-                'when': 'D',
+                'when': 'midnight',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,  # Set delay to True to fix permission error
@@ -215,7 +218,7 @@ LOGGING = {
                 'class': 'logging.handlers.TimedRotatingFileHandler',
                 'filename': 'general_pagenotfound.log',
                 "formatter": "simple",
-                'when': 'D',
+                'when': 'midnight',
                 'interval': 1,
                 'backupCount': 100,
                 'delay': True,  # Set delay to True to fix permission error
