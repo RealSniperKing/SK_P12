@@ -15,8 +15,11 @@ Including another URLconf
 """
 from django.urls import path, include, re_path
 from rest_framework import routers
-from .views import UserViewset, ClientViewset, SigninViewset, ContractViewset, EventViewset, SignoutViewset, error500
+from .views import ClientViewset, ContractViewset, EventViewset, error500, SigninViewset, UserViewset, SignoutViewset
 from django.conf import settings
+from django.conf.urls import handler404
+
+# handler404 = error404
 
 # Create router
 router = routers.SimpleRouter()
@@ -31,7 +34,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/signout', SignoutViewset.as_view(), name='signout'),
     re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
-
 ]
 
 if settings.DEBUG:
