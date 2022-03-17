@@ -103,6 +103,15 @@ class ManagementGroupNameAdmin(admin.ModelAdmin):
     list_per_page = 25                     # number of items per page
     ordering = ['name']       # Default results ordering
 
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_admin
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_admin
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_admin
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(ManagementGroupName, ManagementGroupNameAdmin)
 
