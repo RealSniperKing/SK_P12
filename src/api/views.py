@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, BasePermission, IsAdminUser
 from rest_framework.response import Response
@@ -9,11 +10,13 @@ from rest_framework.exceptions import NotFound
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import Group
 from django_filters.rest_framework import DjangoFilterBackend
-
+from django.http import HttpResponseNotFound
+from django.http import Http404
+import json
 from accounts.models import User
 from accounts.serializers import UserSerializer, SignupSerializer, SigninSerializer, UserDetailSerializer
 
-from crm.models import Client, Contract, Event
+from crm.models import Customer, Contract, Event
 from crm.serializers import ClientSerializer, ClientDetailSerializer, \
     ContractSerializer, ContractDetailSerializer, EventSerializer
 
@@ -27,10 +30,6 @@ import logging, logging.handlers
 from .utils_operations import is_valid_uuid
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-logger.warning('ClientViewset')
-logger.warning('Platform is running at risk')
 
 
 def permissions_from_admin_groups(user, model_name):
@@ -70,10 +69,20 @@ def error500(request):
     raise NotFound(detail="Fatal error", code=500)
 
 
-# def error404(request):
-#     print("------------- Error -------------")
-#     logger.error(request.data)
-#     raise NotFound(detail="Error 404, page not found", code=404)
+# def error404(request, exception):
+#     response_data = {}
+#     response_data['detail'] = 'Not found.'
+#     return HttpResponseNotFound(json.dumps(response_data), content_type="application/json")
+
+    # logger.error(request.data)
+    # raise NotFound(detail="Error 404", code=404)
+
+
+def error404(request):
+    print("------------- Error -------------")
+    logger.error(request.data)
+    raise NotFound(detail="Error 404, page not found", code=404)
+
 
 # USERS
 class SigninViewset(ModelViewSet):
@@ -82,29 +91,42 @@ class SigninViewset(ModelViewSet):
     permission_classes = []
 
     def get_queryset(self):
+        # try:
         return User.objects.all()
+        # except Exception as e:
+        #     logger.error(f"error = {self.request}")
+        #     logger.error(f"error = {e}")
+        #     return None
 
     def create(self, request):
         """Login user"""
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
         if serializer.is_valid():
-            user = authenticate(request,
-                                email=serializer.validated_data["email"],
-                                password=serializer.validated_data["password"])
-            login(request, user)
+            try:
+                logger.error(f"request = {self.request}")
+                logger.error(f"email = {serializer.validated_data['email']}")
+                logger.error(f"password = {serializer.validated_data['password']}")
+                user = User.objects.filter(email=serializer.validated_data['email']).first()
+                # user = authenticate(request,
+                #                     email=serializer.validated_data["email"],
+                #                     password=serializer.validated_data["password"])
+                if user.is_active:
+                    login(request, user)
+                    refresh = RefreshToken.for_user(user)
+                    access_token = refresh.access_token
+                    access_token.set_exp(lifetime=timedelta(days=0.2))
 
-            refresh = RefreshToken.for_user(user)
-            access_token = refresh.access_token
-            access_token.set_exp(lifetime=timedelta(days=0.2))
-            data = {'success': True, 'refresh': str(refresh), 'access': str(access_token)}
+                    data = {'success': True, 'refresh': str(refresh), 'access': str(access_token)}
+                    logger.error(f"data = {data}")
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-            # token = Token.objects.get_or_create(user=user)
-            # print("token = ", token)
-            # print(token.key)
-            # data = {'success': True, 'access': str(token.key)}
-
-            return Response(data, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
         errors = serializer.errors
         errors["success"] = False
@@ -112,13 +134,19 @@ class SigninViewset(ModelViewSet):
 
 
 class SignoutViewset(APIView):
-    permission_classes = [IsAuthenticated]
+    #IsAuthenticated
+    permission_classes = []
 
     def get(self, request, format=None):
         """Logout"""
-        print(request.user)
-        logout(request)
-        return Response({"success": True}, status=status.HTTP_200_OK)
+        try:
+            # request = "dd"
+            logout(request)
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"request = {self.request}")
+            logger.error(f"error = {e}")
+            return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewset(ModelViewSet):
@@ -166,61 +194,63 @@ class UserViewset(ModelViewSet):
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
         if serializer.is_valid():
-            new_user = User.objects.create_user(
-                email=serializer.validated_data["email"],
-                password=serializer.validated_data["password"],
-            )
-            new_user.save()
-            group_name = serializer.validated_data["role"]
-            if group_name:
-                new_user.groups.add(Group.objects.get(name=serializer.validated_data["role"]))
-            return Response({"success": True, "user_id": new_user.user_id}, status=status.HTTP_200_OK)
+            try:
+                new_user = User.objects.create_user(
+                    email=serializer.validated_data["email"],
+                    password=serializer.validated_data["password"],
+                )
+                new_user.save()
+                return Response({"success": True, "user_id": new_user.user_id}, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
         errors = serializer.errors
         errors["success"] = False
         return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        print("UPDATE")
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
 
-        print("serializer = ", serializer)
         if serializer.is_valid():
-            # serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            return Response(serializer.data)
+            try:
+                self.perform_update(serializer)
+                return Response(serializer.data)
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
         errors = serializer.errors
         errors["success"] = False
         return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
-        # group_name_in_field = serializer.validated_data["role"]
-        #
-        # users_in_group = Group.objects.get(name=group_name_in_field).user_set.all()
-        # print("users_in_group = ", users_in_group)
         instance = serializer.save()
 
-        user_ob = User.objects.get(user_id=instance.user_id)
-        role_field = "role"
-        if role_field in serializer.validated_data:
-            group_name = serializer.validated_data[role_field]
-            if group_name:
-                user_ob.groups.clear()
-                user_ob.groups.add(Group.objects.get(name=serializer.validated_data["role"]))
+        # user_ob = User.objects.get(user_id=instance.user_id)
+        # role_field = "role"
+        # if role_field in serializer.validated_data:
+        #     group_name = serializer.validated_data[role_field]
+        #     if group_name:
+        #         user_ob.groups.clear()
+        #         user_ob.groups.add(Group.objects.get(name=serializer.validated_data["role"]))
 
         # errors = serializer.errors
         # errors["success"] = False
         # return Response(errors, status.HTTP_400_BAD_REQUEST)
 
+
 # CLIENTS
 class ClientViewset(ModelViewSet):
     serializer_class = ClientSerializer
-    permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
+    #IsAuthenticated, IsManagerOrAdminManager
+    permission_classes = []
     http_method_names = []
     lookup_field = 'client_id'  # Use to show detail page
-    # queryset = Client.objects.all()
+    # queryset = Customer.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['company_name', 'client_id', 'client_manager']
 
@@ -244,7 +274,7 @@ class ClientViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        http_method_list = permissions_from_admin_groups(user, "Client")
+        http_method_list = permissions_from_admin_groups(user, "Customer")
 
         self.http_method_names = http_method_list
 
@@ -266,7 +296,7 @@ class ClientViewset(ModelViewSet):
 
         print(User.objects.filter(groups__name='Equipe de vente'))
 
-        return Client.objects.all()
+        return Customer.objects.all()
 
     # def retrieve(self, request, *args, **kwargs):
     #     print("//////////")
