@@ -3,9 +3,9 @@ import uuid
 
 from django.db.models import ForeignKey
 from datetime import datetime
+from django.contrib.auth.models import PermissionsMixin
 
-
-class Client(models.Model):
+class Customer(models.Model):
     # Client id
     client_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -36,7 +36,7 @@ class Client(models.Model):
 
     def save(self, *args, **kwargs):
         self.updating_time = datetime.now()
-        super(Client, self).save(*args, **kwargs)
+        super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.company_name
@@ -47,7 +47,7 @@ class Contract(models.Model):
     contract_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     # Client id
-    client = ForeignKey('crm.Client', related_name='author_client_id', on_delete=models.SET_NULL, null=True)
+    client = ForeignKey('crm.Customer', related_name='author_client_id', on_delete=models.SET_NULL, null=True)
 
     # Manager id
     contract_manager = ForeignKey('accounts.User', related_name='manager_contract_id', on_delete=models.SET_NULL, null=True)
