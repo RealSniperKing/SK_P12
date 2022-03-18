@@ -44,6 +44,7 @@ class SigninSerializer(serializers.Serializer):
         logger.error(f'User.objects.filter(email=email).exists() = {User.objects.filter(email=email).exists()}')
 
         # user = authenticate(username=email, password=password)
+        # TODO password checking
         user = User.objects.filter(email=email).first()
         if user is None:
             logger.error(f'user = {user}')
