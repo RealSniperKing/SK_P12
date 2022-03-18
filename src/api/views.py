@@ -21,47 +21,15 @@ from crm.serializers import ClientSerializer, ClientDetailSerializer, \
     ContractSerializer, ContractDetailSerializer, EventSerializer
 
 from .permissions import IsManagerOrAdminManager
-from .actions import convert_actions_to_http_method_list
+from .utils_operations import permissions_from_admin_groups
 
 from datetime import timedelta
 
 # import the logging library
 import logging, logging.handlers
-from .utils_operations import is_valid_uuid
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-def permissions_from_admin_groups(user, model_name):
-    print("-------------------------------")
-    print(user)
-    model_name_lower = model_name.lower()
-    all_groups = user.groups.all()
-    print("all_groups = ", all_groups)
-    print("groupppp = ", user.groups.all())
-
-    group_permissions = user.get_group_permissions()
-
-    actions_list = []
-    for group_permission in list(group_permissions):
-        permission_action_model = group_permission.split(".")[1]
-        permission_action_model_split = permission_action_model.split("_")
-
-        action = permission_action_model_split[0]
-        model = permission_action_model_split[1]
-
-        if model == model_name_lower:
-            actions_list.append(action)
-
-    actions_string = '_'.join(map(str, sorted(actions_list)))
-    print("actions_string = ", actions_string)
-    http_method_list = convert_actions_to_http_method_list(actions_string)
-
-    if user.is_admin:
-        #'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'
-        http_method_list = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
-
-    return http_method_list
 
 
 def error500(request):
@@ -247,7 +215,7 @@ class UserViewset(ModelViewSet):
 class ClientViewset(ModelViewSet):
     serializer_class = ClientSerializer
     #IsAuthenticated, IsManagerOrAdminManager
-    permission_classes = []
+    permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = []
     lookup_field = 'client_id'  # Use to show detail page
     # queryset = Customer.objects.all()
