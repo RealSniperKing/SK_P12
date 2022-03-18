@@ -48,6 +48,7 @@ class Api:
 
         success_list = []
         for http_method in http_methods_list:
+            # GET
             if http_method == 'get':
                 url = reverse(f"{view_url}-list")
                 response = self.client.get(url,
@@ -57,6 +58,7 @@ class Api:
                 assert response.status_code == 200
                 print("response.content = ", response.content)
                 success_list.append(http_method)
+            # POST
             elif http_method == 'post':
                 url = reverse(f"{view_url}-list")
                 response = self.client.post(url,
@@ -64,10 +66,19 @@ class Api:
                                             format='json',
                                             **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
                 print("response.content = ", response.content)
-                # assert response.status_code == 200
-            #
-            # elif http_method == 'put':
-            #
+                json_content = json.loads(response.content)
+                assert json_content["success"] is False
+
+            elif http_method == 'put':
+                url = reverse(f"{view_url}-detail")
+                response = self.client.put(url,
+                                            {},
+                                            format='json',
+                                            **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
+                print("response.content = ", response.content)
+                json_content = json.loads(response.content)
+                assert json_content["success"] is False
+
             # elif http_method == 'delete':
 
         assert success_list == http_methods_list
