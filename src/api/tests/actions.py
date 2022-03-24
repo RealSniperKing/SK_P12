@@ -5,6 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from EpicEvents.settings import *
 from django.conf import settings
 from rest_framework.reverse import reverse, reverse_lazy
+
+from rest_framework.test import APIRequestFactory
 from django.test import Client
 import json
 from api.utils_operations import permissions_from_admin_groups
@@ -20,70 +22,91 @@ class Api:
 
     def create_user(self, user_email=None, password=None):
         if user_email is None or password is None:
-            user = User.objects.create(email=self.email, password=self.password)
+            user = User.objects.create_user(email=self.email, password=self.password)
+            user.save()
         else:
-            user = User.objects.create(email=user_email, password=password)
+            user = User.objects.create_user(email=user_email, password=password)
+            user.save()
         return user
 
     def signin(self):
+        print("SIGNIN")
         # Build the URL
         url = reverse('api:signin-list')
 
-        # Add user in database
-        # user = self.create_user(user_email=self.email, password=self.password)
-        # self.current_user = user
-
         # Make a POST request to connect the user
         response = self.client.post(url, {'email': self.email, 'password': self.password})
+        print("response.status_code = ", response.status_code)
         assert response.status_code == 200
 
         json_content = json.loads(response.content)
         self.access_token = json_content["access"]
 
-    def view_model_access(self, model, view_url):
-        print("view_url = ", view_url)
+    def view_get(self, view_url, expected_status_code, **kwargs):
+        print("VIEW GET")
 
-        http_methods_list = permissions_from_admin_groups(self.current_user, model.__name__)
-        print("http_methods_list = ", http_methods_list)
+        if "-detail" in view_url:
+            user_id = kwargs.get('user_id', "0")
+            url = reverse(view_url, kwargs={"user_id": user_id})
+        else:
+            url = reverse(view_url)
+        response = self.client.get(url,
+                                   format='json',
+                                   **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'},
+                                   follow=True)
+        print(response.status_code)
+        assert response.status_code == expected_status_code
+        print("response.content = ", response.content)
 
-        success_list = []
-        for http_method in http_methods_list:
-            # GET
-            if http_method == 'get':
-                url = reverse(f"{view_url}-list")
-                response = self.client.get(url,
-                                           format='json',
-                                           **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'},
-                                           follow=True)
-                assert response.status_code == 200
-                print("response.content = ", response.content)
-                success_list.append(http_method)
-            # POST
-            elif http_method == 'post':
-                url = reverse(f"{view_url}-list")
-                response = self.client.post(url,
-                                            {},
-                                            format='json',
-                                            **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
-                print("response.content = ", response.content)
-                json_content = json.loads(response.content)
-                assert json_content["success"] is False
+    def view_post(self, view_url, expected_status_code, **kwargs):
+        print("VIEW POST")
+        data = kwargs.get('data', {})
 
-            elif http_method == 'put':
-                url = reverse(f"{view_url}-detail")
-                response = self.client.put(url,
-                                            {},
-                                            format='json',
-                                            **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
-                print("response.content = ", response.content)
-                json_content = json.loads(response.content)
-                assert json_content["success"] is False
+        json_content = {}
+        url = reverse(view_url)
 
-            # elif http_method == 'delete':
+        response = self.client.post(url,
+                                    data=data,
+                                    format='json',
+                                    **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
 
-        assert success_list == http_methods_list
+        # print(response.status_code)
+        # print(response.content)
+        assert response.status_code == expected_status_code
+        json_content = json.loads(response.content)
+        # print("json_content = ", json_content)
+        return json_content
 
+    def view_put(self, view_url, expected_status_code, **kwargs):
+        print("VIEW PUT")
 
+        user_id = kwargs.get('user_id', "0")
+        data = kwargs.get('data', {})
+
+        url = reverse(view_url, kwargs={"user_id": user_id})
+        response = self.client.put(url,
+                                   data=data,
+                                   content_type='application/json',
+                                   format='json',
+                                   **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
+        print(response)
+        print("response.content = ", response.content)
+        json_content = json.loads(response.content)
+        assert response.status_code == expected_status_code
+
+    def view_delete(self, view_url, expected_status_code, **kwargs):
+        print("VIEW PUT")
+
+        user_id = kwargs.get('user_id', "0")
+
+        url = reverse(view_url, kwargs={"user_id": user_id})
+        response = self.client.delete(url,
+                                      content_type='application/json',
+                                      format='json',
+                                      **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
+        print(response.status_code)
+        print("response.content = ", response.content)
+        assert response.status_code == expected_status_code
 
     def create_group_with_permissions(self, groupname_models_permissionslist):
         group_name = groupname_models_permissionslist["group_name"]
