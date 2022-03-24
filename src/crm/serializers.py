@@ -13,7 +13,7 @@ import logging
 
 # Customer
 class ClientSerializer(serializers.ModelSerializer):
-    client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
+    client_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, required=False, queryset=User.objects.all())
 
     class Meta:
         model = Customer
