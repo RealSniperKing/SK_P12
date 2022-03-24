@@ -4,6 +4,8 @@ import uuid
 from django.db.models import ForeignKey
 from datetime import datetime
 from django.contrib.auth.models import PermissionsMixin
+from django.utils import timezone
+
 
 class Customer(models.Model):
     # Client id
@@ -35,7 +37,7 @@ class Customer(models.Model):
     sales_contact = ForeignKey('accounts.User', related_name='_sales_user_id', on_delete=models.SET_NULL, null=True)
 
     def save(self, *args, **kwargs):
-        self.updating_time = datetime.now()
+        self.updating_time = timezone.now()
         super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
