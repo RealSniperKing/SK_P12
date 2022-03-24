@@ -7,12 +7,13 @@ from django.contrib.contenttypes.models import ContentType
 from EpicEvents.settings import *
 from django.test.utils import override_settings
 import json
-from .actions import Api, launch_crud_actions
+from .models import Api
+from .controllers import ApiTest
 
 
 @pytest.mark.django_db(transaction=True)
-def test_user_view_permissions_true():
-    api = Api("vente_1@test.fr", "abcdef")
+def test_views_permissions_true():
+    api_test = ApiTest("vente_1@test.fr", "abcdef")
 
     # Init database
     group_name = "Equipe de gestion"
@@ -22,16 +23,18 @@ def test_user_view_permissions_true():
         {"model": Customer, "permissions": ["view", "add", "change", "delete"]},
         {"model": Event, "permissions": ["view", "add", "change", "delete"]}
     ]}
-    api.create_group_with_permissions(management_permissions)
-    api.add_user_in_group(group_name)
+    api_test.assign_permissions_to_user(management_permissions, group_name)
 
     crud_actions = {"create": 200, "read": 200, "update": 200, "delete": 200}
-    launch_crud_actions(api, "users", crud_actions)
+    api_test.launch_user_crud_actions("users", crud_actions)
+    api_test.launch_customer_crud_actions("clients", crud_actions)
+    # api_test.launch_crud_actions("contracts", crud_actions)
+    # api_test.launch_crud_actions("events", crud_actions)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_user_view_permissions_false():
-    api = Api("vente_1@test.fr", "abcdef")
+def test_views_permissions_false():
+    api_test = ApiTest("vente_1@test.fr", "abcdef")
 
     # Init database
     group_name = "Equipe de gestion"
@@ -41,8 +44,10 @@ def test_user_view_permissions_false():
         {"model": Customer, "permissions": []},
         {"model": Event, "permissions": []}
     ]}
-    api.create_group_with_permissions(management_permissions)
-    api.add_user_in_group(group_name)
+    api_test.assign_permissions_to_user(management_permissions, group_name)
 
     crud_actions = {"create": 405, "read": 405, "update": 405, "delete": 405}
-    launch_crud_actions(api, "users", crud_actions)
+    api_test.launch_user_crud_actions("users", crud_actions)
+    # api_test.launch_crud_actions("clients", crud_actions)
+    # api_test.launch_crud_actions("contracts", crud_actions)
+    # api_test.launch_crud_actions("events", crud_actions)
