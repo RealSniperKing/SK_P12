@@ -43,9 +43,7 @@ class SigninSerializer(serializers.Serializer):
         logger.error(f"is_active = {user_temp.is_active}")
         logger.error(f'User.objects.filter(email=email).exists() = {User.objects.filter(email=email).exists()}')
 
-        # user = authenticate(username=email, password=password)
-        # TODO password checking
-        user = User.objects.filter(email=email).first()
+        user = authenticate(username=email, password=password)
         if user is None:
             logger.error(f'user = {user}')
             raise serializers.ValidationError('Bad email or password')
@@ -108,12 +106,14 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
-    groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_empty=True, queryset=Group.objects.all())
+    groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_empty=True, required=False, queryset=Group.objects.all())
+    confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
 
     class Meta:
         model = User
-        fields = ['email', 'user_id', 'groups']
-        # extra_kwargs = {'groups': {'required': False}}
+        fields = ['email', 'user_id', 'groups', 'password', 'confirm_password']
+        extra_kwargs = {'password': {'write_only': True,
+                                     'style': {'input_type': 'password'}}}
 
     def validate(self, data):
         return data
