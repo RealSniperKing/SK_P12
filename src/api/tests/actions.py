@@ -148,7 +148,34 @@ class Api:
         assert response.status_code == 200
 
 
+def launch_crud_actions(api, view_name, crud_actions):
+    """Test CRUD operations : create, read, update, delete"""
+    # Connection
+    api.signin()
 
+    # GET
+    api.view_get("api:users-list", crud_actions["read"])
+
+    # POST
+    new_user_email = "vente_2@test.fr"
+    new_user_password = "abcdef"
+    data = {"email": new_user_email, "password": new_user_password, "confirm_password": new_user_password}
+    json_content = api.view_post(f"api:{view_name}-list", crud_actions["create"], data=data)
+    user_id = json_content.get('user_id', "0")
+
+    # GET DETAIL
+    api.view_get(f"api:{view_name}-detail", crud_actions["read"], user_id=user_id)
+
+    # PUT
+    new_user_password = "123456"
+    data = {"email": new_user_email, "password": new_user_password, "confirm_password": new_user_password}
+    api.view_put(f"api:{view_name}-detail", crud_actions["update"], data=data, user_id=user_id)
+
+    # DELETE
+    api.view_delete(f"api:{view_name}-detail", crud_actions["delete"], user_id=user_id)
+
+    # Logout
+    api.signout()
 
 
 def create_group_with_permissions(group_name, model, permissions_names_list):
