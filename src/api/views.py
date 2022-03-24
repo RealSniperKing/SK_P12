@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
-
+from rest_framework import permissions
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import Group
 from django_filters.rest_framework import DjangoFilterBackend
@@ -75,10 +75,12 @@ class SigninViewset(ModelViewSet):
                 logger.error(f"request = {self.request}")
                 logger.error(f"email = {serializer.validated_data['email']}")
                 logger.error(f"password = {serializer.validated_data['password']}")
-                user = User.objects.filter(email=serializer.validated_data['email']).first()
-                # user = authenticate(request,
-                #                     email=serializer.validated_data["email"],
-                #                     password=serializer.validated_data["password"])
+
+                # user = User.objects.filter(email=serializer.validated_data['email']).first()
+                user = authenticate(request,
+                                    email=serializer.validated_data['email'],
+                                    password=serializer.validated_data['password'])
+
                 if user.is_active:
                     login(request, user)
                     refresh = RefreshToken.for_user(user)
@@ -143,7 +145,7 @@ class UserViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        http_method_list = permissions_from_admin_groups(user, "User")
+        http_method_list = permissions_from_admin_groups(user, User.__name__)
         self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
@@ -210,6 +212,10 @@ class UserViewset(ModelViewSet):
         # errors["success"] = False
         # return Response(errors, status.HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, *args, **kwargs):
+        ob = self.get_object()
+        ob.delete()
+        return Response({"success": True}, status=status.HTTP_200_OK)
 
 # CLIENTS
 class ClientViewset(ModelViewSet):
@@ -242,7 +248,7 @@ class ClientViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        http_method_list = permissions_from_admin_groups(user, "Customer")
+        http_method_list = permissions_from_admin_groups(user, Customer.__name__)
 
         self.http_method_names = http_method_list
 
@@ -337,7 +343,7 @@ class ContractViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        http_method_list = permissions_from_admin_groups(user, "Contract")
+        http_method_list = permissions_from_admin_groups(user, Contract.__name__)
         self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
@@ -381,7 +387,7 @@ class EventViewset(ModelViewSet):
             self.permission_classes = [IsAuthenticated]
             return super(self.__class__, self).get_permissions()
 
-        http_method_list = permissions_from_admin_groups(user, "Event")
+        http_method_list = permissions_from_admin_groups(user, Event.__name__)
         self.http_method_names = http_method_list
 
         return super(self.__class__, self).get_permissions()
