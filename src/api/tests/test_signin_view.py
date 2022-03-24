@@ -24,42 +24,13 @@ from rest_framework.reverse import reverse, reverse_lazy
 
 
 @pytest.mark.django_db(transaction=True)
-def test_signin_view(client):
+def test_signin_signout_view(client):
     api = Api("vente_1@test.fr", "abcdef")
-
-    # Init database
-    management_permissions = {"group_name": "Equipe de gestion", "permissions_list": [
-        {"model": User, "permissions": ["view", "add", "change", "delete"]},
-        {"model": Customer, "permissions": ["view", "add", "change", "delete"]},
-        {"model": Contract, "permissions": ["view", "add", "change", "delete"]},
-        {"model": Event, "permissions": ["view", "add", "change", "delete"]}
-        ]}
-    management_group_name = api.create_group_with_permissions(management_permissions)
-    api.add_user_in_group(management_group_name)
 
     # Connection
     api.signin()
 
-    # Get and test http method to current user
-    api.view_model_access(User, "api:users")
-
     # Logout
     api.signout()
-
-    # Build the URL
-    # url = reverse('api:signin-list')
-    #
-    # # Create group with permission
-    # customer_group_name = create_group_with_permissions("Equipe de vente", Customer, ["view", "add", "change", "delete"])
-    #
-    # # Add user in database
-    # user = create_user(user_email="vente_1@team.fr", user_group_name=customer_group_name)
-    #
-    # # Make a POST request to connect the user
-    # response = client.post(url, {'email': user.email, 'password': user.password})
-    # json_content = json.loads(response.content)
-    #
-    # # Verify that the response is correct
-    # assert response.status_code == 200
 
 
