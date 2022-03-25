@@ -37,7 +37,7 @@ class Customer(models.Model):
     sales_contact = ForeignKey('accounts.User', related_name='_sales_user_id', on_delete=models.SET_NULL, null=True)
 
     def save(self, *args, **kwargs):
-        self.updating_time = timezone.now()
+        self.updating_time = datetime.now()
         super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -49,7 +49,7 @@ class Contract(models.Model):
     contract_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     # Client id
-    client = ForeignKey('crm.Customer', related_name='author_client_id', on_delete=models.SET_NULL, null=True)
+    client = ForeignKey('crm.Customer', related_name='customer_client_id', on_delete=models.SET_NULL, null=True)
 
     # Manager id
     contract_manager = ForeignKey('accounts.User', related_name='manager_contract_id', on_delete=models.SET_NULL, null=True)
@@ -67,6 +67,10 @@ class Contract(models.Model):
 
     created_time = models.DateTimeField(auto_now_add=True)
     updating_time = models.DateTimeField(null=True)
+
+    def save(self, *args, **kwargs):
+        self.updating_time = datetime.now()
+        super(Contract, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.title
