@@ -5,8 +5,10 @@ from accounts.models import User
 from accounts.serializers import UserSerializer, UserSmallSerializer
 
 import logging
-# LOG
-# logger = logging.getLogger(__name__)
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 # logger.warning('SERIALIZER')
 
@@ -49,9 +51,8 @@ class ClientDetailSerializer(serializers.ModelSerializer):
 
 
 # CONTRACT
-
 class ContractSerializer(serializers.ModelSerializer):
-    client = serializers.SlugRelatedField(slug_field='company_name', queryset=Customer.objects.all())
+    client = serializers.SlugRelatedField(slug_field='company_name', allow_null=True, queryset=Customer.objects.all())
     contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
@@ -59,11 +60,12 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = ['contract_id', 'title', 'client', 'contract_manager', 'status']
 
     def validate(self, data):
+        print("data = ", data)
         return data
 
 
 class ContractDetailSerializer(serializers.ModelSerializer):
-    client = serializers.SlugRelatedField(slug_field='company_name', queryset=Customer.objects.all())
+    client = serializers.SlugRelatedField(slug_field='company_name', allow_null=True, queryset=Customer.objects.all())
     contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
     # status = serializers.SlugRelatedField(slug_field='email', queryset=Contract.objects.all())
     class Meta:
@@ -80,7 +82,7 @@ class ContractDetailSerializer(serializers.ModelSerializer):
 
 # EVENT
 class EventSerializer(serializers.ModelSerializer):
-    contract = serializers.SlugRelatedField(slug_field='title', queryset=Contract.objects.all())
+    contract = serializers.SlugRelatedField(slug_field='title', allow_null=True, queryset=Contract.objects.all())
     event_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
 
     class Meta:
