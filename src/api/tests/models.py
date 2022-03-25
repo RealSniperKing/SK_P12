@@ -7,6 +7,7 @@ from rest_framework.reverse import reverse
 
 from django.test import Client
 import json
+from accounts.models import ManagementGroupName
 
 
 class Api:
@@ -39,16 +40,33 @@ class Api:
         json_content = json.loads(response.content)
         self.access_token = json_content["access"]
 
+    def read_kwargs(self, kwargs):
+        user_id = kwargs.get('user_id', "0")
+        client_id = kwargs.get('client_id', "0")
+        contract_id = kwargs.get('contract_id', "0")
+        event_id = kwargs.get('event_id', "0")
+        data = kwargs.get('data', {})
+        return user_id, client_id, contract_id, event_id, data
+
+    def detail_url_from_kwargs(self, view_url, kwargs_values):
+        user_id, client_id, contract_id, event_id, data = self.read_kwargs(kwargs_values)
+        url = "bad"
+        if user_id != "0":
+            url = reverse(view_url, kwargs={"user_id": user_id})
+        if client_id != "0":
+            url = reverse(view_url, kwargs={"client_id": client_id})
+        if contract_id != "0":
+            url = reverse(view_url, kwargs={"contract_id": contract_id})
+        if event_id != "0":
+            url = reverse(view_url, kwargs={"event_id": event_id})
+        return url, data
+
     def view_get(self, view_url, expected_status_code, **kwargs):
-        print("VIEW GET")
+        print("------- VIEW GET -------")
+        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
 
         if "-detail" in view_url:
-            user_id = kwargs.get('user_id', "0")
-            client_id = kwargs.get('client_id', "0")
-            if user_id != "0":
-                url = reverse(view_url, kwargs={"user_id": user_id})
-            if client_id != "0":
-                url = reverse(view_url, kwargs={"client_id": client_id})
+            url, _ = self.detail_url_from_kwargs(view_url, kwargs)
         else:
             url = reverse(view_url)
         response = self.client.get(url,
@@ -60,7 +78,9 @@ class Api:
         print("response.content = ", response.content)
 
     def view_post(self, view_url, expected_status_code, **kwargs):
-        print("VIEW POST")
+        print("------- VIEW POST -------")
+        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
+
         data = kwargs.get('data', {})
 
         json_content = {}
@@ -79,16 +99,10 @@ class Api:
         return json_content
 
     def view_put(self, view_url, expected_status_code, **kwargs):
-        print("VIEW PUT")
+        print("------- VIEW PUT -------")
+        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
 
-        user_id = kwargs.get('user_id', "0")
-        client_id = kwargs.get('client_id', "0")
-        data = kwargs.get('data', {})
-
-        if user_id != "0":
-            url = reverse(view_url, kwargs={"user_id": user_id})
-        if client_id != "0":
-            url = reverse(view_url, kwargs={"client_id": client_id})
+        url, data = self.detail_url_from_kwargs(view_url, kwargs)
 
         response = self.client.put(url,
                                    data=data,
@@ -101,11 +115,10 @@ class Api:
         assert response.status_code == expected_status_code
 
     def view_delete(self, view_url, expected_status_code, **kwargs):
-        print("VIEW PUT")
+        print("------- VIEW DELETE -------")
+        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
 
-        user_id = kwargs.get('user_id', "0")
-
-        url = reverse(view_url, kwargs={"user_id": user_id})
+        url, data = self.detail_url_from_kwargs(view_url, kwargs)
         response = self.client.delete(url,
                                       content_type='application/json',
                                       format='json',
@@ -144,9 +157,15 @@ class Api:
         return group_name
 
     def add_user_in_group(self, user_group_name):
+        print("Group.objects all = ", Group.objects.all())
+        print("user_group_name = ", user_group_name)
         if self.current_user:
-            self.current_user.groups.clear()
-            self.current_user.groups.add(Group.objects.get(name=user_group_name))
+            # self.current_user.groups.clear()
+            my_group = Group.objects.get(name=user_group_name)
+            my_group.user_set.add(self.current_user)
+
+        print("+++++++++++++++++++++")
+        print("self.current_user.groups = ", self.current_user.groups)
 
     def signout(self):
         url = reverse('api:signout')
