@@ -5,6 +5,11 @@ from rest_framework.permissions import DjangoModelPermissions
 from accounts.models import User, ManagementGroupName
 from django.contrib.auth.models import Group
 
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 class D7896DjangoModelPermissions(DjangoModelPermissions):
     # def __init__(self):
@@ -35,7 +40,7 @@ class IsManagerOrAdminManager(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         """detail permissions"""
-        print("///////////////////////")
+        print("///////////")
         model_name = obj._meta.model.__name__
         print("model_name = ", model_name)
         user = request.user
@@ -61,8 +66,16 @@ class IsManagerOrAdminManager(permissions.BasePermission):
         if management_group in group_all:
             return True
 
+        print("*********************************")
+        print(obj.client_manager)
+        logger.error("*********************************")
+        logger.error(obj.client_manager)
+        logger.error(user)
+
         # Client permission
         if model_name == "Customer":
+            print("obj.client_manager = ", obj.client_manager)
+            print("user = ", user)
             return obj.client_manager == user
 
         # Contract permission
