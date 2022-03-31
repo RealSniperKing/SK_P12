@@ -108,6 +108,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_empty=True, required=False, queryset=Group.objects.all())
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
+    email = serializers.EmailField(required=True, write_only=True)
 
     class Meta:
         model = User
@@ -116,5 +117,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
                                      'style': {'input_type': 'password'}}}
 
     def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError("passwords not match")
+
         return data
 
