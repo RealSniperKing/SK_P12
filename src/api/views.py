@@ -160,6 +160,24 @@ class UserViewset(ModelViewSet):
     def get_queryset(self):
         return User.objects.all()
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            serializer = self.action_serializers["create"](queryset, many=True)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
@@ -186,8 +204,7 @@ class UserViewset(ModelViewSet):
 
         if serializer.is_valid():
             try:
-                self.perform_update(serializer)
-                return Response(serializer.data)
+                return self.perform_update(serializer)
             except Exception as e:
                 logger.error(f"request = {self.request}")
                 logger.error(f"error = {e}")
@@ -199,11 +216,16 @@ class UserViewset(ModelViewSet):
 
     def perform_update(self, serializer):
         instance = serializer.save()
+        return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        ob = self.get_object()
-        ob.delete()
-        return Response({"success": True}, status=status.HTTP_200_OK)
+        try:
+            ob = self.get_object()
+            ob.delete()
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
 
 
 # CLIENTS
@@ -253,17 +275,23 @@ class ClientViewset(ModelViewSet):
     def get_queryset(self):
         return Customer.objects.all()
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     print("//////////")
-    #     kwargs_dict = self.kwargs
-    #     id_name = "client_id"
-    #     if id_name in kwargs_dict:
-    #         client_id = kwargs_dict[id_name]
-    #         client_uuid = is_valid_uuid(client_id)
-    #         print("client_uuid = ", client_uuid)
-    #         if not client_uuid:
-    #             print("no uuid")
-    #             return error404(self.request)
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            serializer = self.action_serializers["create"](queryset, many=True)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
@@ -291,23 +319,35 @@ class ClientViewset(ModelViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
-        print("UPDATE")
-        print("kwargs = ", kwargs)
         partial = True
         instance = self.get_object()
-        print("instance = ", instance)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+
+        # serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            try:
+                return self.perform_update(serializer)
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
+
+        errors = serializer.errors
+        errors["success"] = False
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         instance = serializer.save()
+        return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        ob = self.get_object()
-        ob.delete()
-        return Response({"success": True}, status=status.HTTP_200_OK)
+        try:
+            ob = self.get_object()
+            ob.delete()
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
 
 
 # CONTRACTS
@@ -352,6 +392,24 @@ class ContractViewset(ModelViewSet):
     def get_queryset(self):
         return Contract.objects.all()
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            serializer = self.action_serializers["create"](queryset, many=True)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
     def create(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         print("serializer = ", serializer)
@@ -383,17 +441,31 @@ class ContractViewset(ModelViewSet):
         partial = True
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+
+        if serializer.is_valid():
+            try:
+                return self.perform_update(serializer)
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
+
+        errors = serializer.errors
+        errors["success"] = False
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         instance = serializer.save()
+        return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        ob = self.get_object()
-        ob.delete()
-        return Response({"success": True}, status=status.HTTP_200_OK)
+        try:
+            ob = self.get_object()
+            ob.delete()
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
 
 
 # EVENTS
@@ -436,5 +508,75 @@ class EventViewset(ModelViewSet):
         return response
 
     def get_queryset(self):
-
         return Event.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            serializer = self.action_serializers["create"](queryset, many=True)
+            return Response({"success": True, "data": serializer.data})
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        print("serializer = ", serializer)
+        if serializer.is_valid():
+            try:
+                response = self.perform_create(serializer)
+                return response
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
+        errors = serializer.errors
+        errors["success"] = False
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        contract = serializer.save()
+
+        data = {"success": True,
+                "contract_id": str(contract.contract_id)}
+        return Response(data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        partial = True
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        if serializer.is_valid():
+            try:
+                return self.perform_update(serializer)
+            except Exception as e:
+                logger.error(f"request = {self.request}")
+                logger.error(f"error = {e}")
+                return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
+
+        errors = serializer.errors
+        errors["success"] = False
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            ob = self.get_object()
+            ob.delete()
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"error = {e}")
+            return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
