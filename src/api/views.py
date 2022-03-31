@@ -105,7 +105,7 @@ class SigninViewset(ModelViewSet):
 
 class SignoutViewset(APIView):
     #IsAuthenticated
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         """Logout"""
@@ -552,10 +552,10 @@ class EventViewset(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        contract = serializer.save()
+        event = serializer.save()
 
         data = {"success": True,
-                "contract_id": str(contract.contract_id)}
+                "event_id": str(event.event_id)}
         return Response(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
