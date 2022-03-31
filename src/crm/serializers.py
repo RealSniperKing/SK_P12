@@ -60,7 +60,6 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = ['contract_id', 'title', 'client', 'contract_manager', 'status']
 
     def validate(self, data):
-        print("data = ", data)
         return data
 
 
