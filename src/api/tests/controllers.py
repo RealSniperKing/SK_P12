@@ -38,7 +38,7 @@ class ApiTest:
         self.api.signin()
 
         # GET
-        self.api.view_get(f"api:{view_name}-list", crud_actions["read"])
+        self.api.view_get(f"api:{view_name}-list", crud_actions["read-list"])
 
         # POST
         new_user_email = "vente_2@test.fr"
@@ -48,7 +48,7 @@ class ApiTest:
         user_id = json_content.get('user_id', "0")
 
         # GET DETAIL
-        self.api.view_get(f"api:{view_name}-detail", crud_actions["read"], user_id=user_id)
+        self.api.view_get(f"api:{view_name}-detail", crud_actions["read-detail"], user_id=user_id)
 
         # PUT
         new_user_password = "123456"
@@ -67,7 +67,7 @@ class ApiTest:
         self.api.signin()
 
         # GET
-        self.api.view_get(f"api:{view_name}-list", crud_actions["read"])
+        self.api.view_get(f"api:{view_name}-list", crud_actions["read-list"])
 
         # POST
         compagny_name = "company_1"
@@ -77,7 +77,7 @@ class ApiTest:
         client_id = json_content.get('client_id', "0")
 
         # GET DETAIL
-        self.api.view_get(f"api:{view_name}-detail", crud_actions["read"], client_id=client_id)
+        self.api.view_get(f"api:{view_name}-detail", crud_actions["read-detail"], client_id=client_id)
 
         # PUT
         data = {"email": "company_edit@mail.fr"}
@@ -95,7 +95,7 @@ class ApiTest:
         self.api.signin()
 
         # GET
-        self.api.view_get(f"api:{view_name}-list", crud_actions["read"])
+        self.api.view_get(f"api:{view_name}-list", crud_actions["read-list"])
 
         # POST
         title = "contract1"
@@ -104,7 +104,7 @@ class ApiTest:
         contract_id = json_content.get('contract_id', "0")
 
         # GET DETAIL
-        self.api.view_get(f"api:{view_name}-detail", crud_actions["read"], contract_id=contract_id)
+        self.api.view_get(f"api:{view_name}-detail", crud_actions["read-detail"], contract_id=contract_id)
 
         # PUT
         data = {"title": "contract1_edit"}
@@ -121,8 +121,24 @@ class ApiTest:
         # Connection
         self.api.signin()
 
+        # GET
+        self.api.view_get(f"api:{view_name}-list", crud_actions["read-list"])
+
         # POST
         name = "Event_1"
         data = {"name": name, "contract": "", "event_manager": ""}
         json_content = self.api.view_post(f"api:{view_name}-list", crud_actions["create"], data=data)
-        contract_id = json_content.get('event_id', "0")
+        event_id = json_content.get('event_id', "0")
+
+        # GET DETAIL
+        self.api.view_get(f"api:{view_name}-detail", crud_actions["read-detail"], event_id=event_id)
+
+        # PUT
+        data = {"name": "Event_1_edit"}
+        self.api.view_put(f"api:{view_name}-detail", crud_actions["update"], data=data, event_id=event_id)
+
+        # DELETE
+        self.api.view_delete(f"api:{view_name}-detail", crud_actions["delete"], event_id=event_id)
+
+        # Logout
+        self.api.signout()
