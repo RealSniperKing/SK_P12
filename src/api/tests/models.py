@@ -75,6 +75,8 @@ class Api:
                                    follow=True)
         print(response.status_code)
         assert response.status_code == expected_status_code
+        json_content = json.loads(response.content)
+        assert json_content["success"] is True
         print("response.content = ", response.content)
 
     def view_post(self, view_url, expected_status_code, **kwargs):
@@ -95,7 +97,7 @@ class Api:
         print(response.content)
         assert response.status_code == expected_status_code
         json_content = json.loads(response.content)
-        # print("json_content = ", json_content)
+        assert json_content["success"] is True
         return json_content
 
     def view_put(self, view_url, expected_status_code, **kwargs):
@@ -111,8 +113,9 @@ class Api:
                                    **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
         print(response)
         print("response.content = ", response.content)
-        json_content = json.loads(response.content)
         assert response.status_code == expected_status_code
+        json_content = json.loads(response.content)
+        assert json_content["success"] is True
 
     def view_delete(self, view_url, expected_status_code, **kwargs):
         print("------- VIEW DELETE -------")
@@ -126,6 +129,8 @@ class Api:
         print(response.status_code)
         print("response.content = ", response.content)
         assert response.status_code == expected_status_code
+        json_content = json.loads(response.content)
+        assert json_content["success"] is True
 
     def create_group_with_permissions(self, groupname_models_permissionslist):
         group_name = groupname_models_permissionslist["group_name"]
