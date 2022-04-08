@@ -66,12 +66,8 @@ class IsManagerOrAdminManager(permissions.BasePermission):
         if management_group in group_all:
             return True
 
-        print("*********************************")
-        print(obj.client_manager)
-        logger.error("*********************************")
-        logger.error(obj.client_manager)
-        logger.error(user)
-
+        if request.method == 'GET':
+            return True
         # Client permission
         if model_name == "Customer":
             print("obj.client_manager = ", obj.client_manager)
