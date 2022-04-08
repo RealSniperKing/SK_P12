@@ -194,14 +194,17 @@ class UserViewset(ModelViewSet):
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
+        # instance = self.get_object()
+        # serializer = self.get_serializer(instance, data=request.data)
+        partial = True
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
 
         if serializer.is_valid():
             try:
@@ -211,10 +214,10 @@ class UserViewset(ModelViewSet):
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         instance = serializer.save()
@@ -305,10 +308,10 @@ class ClientViewset(ModelViewSet):
                 logger.error(f"request = {self.request}")
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -335,10 +338,10 @@ class ClientViewset(ModelViewSet):
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         instance = serializer.save()
@@ -425,10 +428,10 @@ class ContractViewset(ModelViewSet):
                 logger.error(f"request = {self.request}")
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -455,10 +458,10 @@ class ContractViewset(ModelViewSet):
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         instance = serializer.save()
@@ -545,10 +548,10 @@ class EventViewset(ModelViewSet):
                 logger.error(f"request = {self.request}")
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -571,10 +574,10 @@ class EventViewset(ModelViewSet):
                 logger.error(f"error = {e}")
                 return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
-        # errors = serializer.errors
-        # errors["success"] = False
+        errors = serializer.errors
+        errors["success"] = False
         logger.error(f"error = {serializer.errors}")
-        return Response({'success': False}, status.HTTP_400_BAD_REQUEST)
+        return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         instance = serializer.save()
