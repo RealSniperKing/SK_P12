@@ -65,6 +65,9 @@ class Contract(models.Model):
 
     status = models.CharField(max_length=64, choices=Status.choices, default=Status.ACHEMINEMENT)
 
+    amount = models.FloatField(null=True)
+    payment_due = models.DateTimeField(null=True)
+
     created_time = models.DateTimeField(auto_now_add=True)
     updating_time = models.DateTimeField(null=True)
 
@@ -85,8 +88,11 @@ class Event(models.Model):
 
     name = models.CharField(max_length=200, blank=False)
 
+    attendees = models.IntegerField(null=True)
+
     date_event_start = models.DateTimeField(null=True)
     date_event_end = models.DateTimeField(null=True)
+    notes = models.CharField(max_length=1024, null=True, blank=False)
 
     created_time = models.DateTimeField(auto_now_add=True)
     updating_time = models.DateTimeField(null=True)
