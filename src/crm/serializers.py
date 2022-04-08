@@ -67,9 +67,11 @@ class ContractDetailSerializer(serializers.ModelSerializer):
     client = serializers.SlugRelatedField(slug_field='company_name', allow_null=True, queryset=Customer.objects.all())
     contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
     # status = serializers.SlugRelatedField(slug_field='email', queryset=Contract.objects.all())
+
     class Meta:
         model = Contract
-        fields = ['title', 'client', 'contract_manager', 'status', 'contract_id', 'created_time', 'updating_time']
+        fields = ['title', 'client', 'contract_manager', 'status', 'contract_id',
+                  'created_time', 'updating_time', 'amount', 'payment_due']
         extra_kwargs = {
             'created_time': {'read_only': True},
             'updating_time': {'read_only': True},
@@ -86,7 +88,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['event_id', 'contract', 'event_manager', 'name']
+        fields = ['event_id', 'contract', 'event_manager', 'name', 'attendees', 'notes']
 
     def validate(self, data):
         return data
