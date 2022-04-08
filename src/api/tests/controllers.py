@@ -42,7 +42,7 @@ class ApiTest:
 
         # POST
         new_user_email = "vente_2@test.fr"
-        new_user_password = "abcdef"
+        new_user_password = "pwTEST?_741."
         data = {"email": new_user_email, "password": new_user_password, "confirm_password": new_user_password}
         json_content = self.api.view_post(f"api:{view_name}-list", crud_actions["create"], data=data)
         user_id = json_content.get('user_id', "0")
@@ -51,7 +51,7 @@ class ApiTest:
         self.api.view_get(f"api:{view_name}-detail", crud_actions["read-detail"], user_id=user_id)
 
         # PUT
-        new_user_password = "123456"
+        new_user_password = "pwTEST?_741."
         data = {"email": new_user_email, "password": new_user_password, "confirm_password": new_user_password}
         self.api.view_put(f"api:{view_name}-detail", crud_actions["update"], data=data, user_id=user_id)
 

@@ -13,7 +13,7 @@ from .controllers import ApiTest
 
 @pytest.mark.django_db(transaction=True)
 def test_views_permissions_true():
-    api_test = ApiTest("gestion_1@test.fr", "abcdef")
+    api_test = ApiTest("gestion_1@test.fr", "pwTEST?_741.")
 
     # Init database
     group_name = "Equipe de gestion"
@@ -45,7 +45,7 @@ def test_views_permissions_true():
 
 @pytest.mark.django_db(transaction=True)
 def __test_views_permissions_false():
-    api_test = ApiTest("gestion_1@test.fr", "abcdef")
+    api_test = ApiTest("gestion_1@test.fr", "pwTEST?_741.")
 
     # Init database
     group_name = "Equipe de gestion"
