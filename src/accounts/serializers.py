@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
@@ -40,7 +41,6 @@ class SigninSerializer(serializers.Serializer):
         logger.error(User.objects.all())
         user_temp = User.objects.filter(email=email).first()
         logger.error(f"user_temp = {user_temp}")
-        logger.error(f"is_active = {user_temp.is_active}")
         logger.error(f'User.objects.filter(email=email).exists() = {User.objects.filter(email=email).exists()}')
 
         user = authenticate(username=email, password=password)
@@ -72,8 +72,12 @@ class UserSerializer(serializers.ModelSerializer):
     print("-------+++++")
 
     def validate(self, data):
+        # Is it a valid password ?
+        password = data['password']
+        validate_password(password)
+
         # Passwords matching ?
-        if data['password'] != data['confirm_password']:
+        if password != data['confirm_password']:
             raise serializers.ValidationError("passwords not match")
 
         # Check if the user exist
@@ -81,17 +85,6 @@ class UserSerializer(serializers.ModelSerializer):
         users = User.objects.filter(email=email)
         if users.exists():
             raise serializers.ValidationError('This user already exist')
-
-        # Check if the group_name exist
-        # role = data["role"]
-        # if role:
-        #     group_ob = Group.objects.filter(name=role)
-        #     if not group_ob:
-        #         raise serializers.ValidationError('Invalid group name')
-
-        # group_ob = Group.objects.filter(name=group_name)
-        # if not group_ob:
-        #     raise serializers.ValidationError('Instance not found')
 
         return data
 
@@ -108,7 +101,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_empty=True, required=False, queryset=Group.objects.all())
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
-    email = serializers.EmailField(required=True, write_only=True)
+    # email = serializers.EmailField(required=True, write_only=True)
 
     class Meta:
         model = User
@@ -117,6 +110,10 @@ class UserDetailSerializer(serializers.ModelSerializer):
                                      'style': {'input_type': 'password'}}}
 
     def validate(self, data):
+        # Is it a valid password ?
+        password = data['password']
+        validate_password(password)
+
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError("passwords not match")
 
