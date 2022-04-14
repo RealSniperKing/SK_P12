@@ -9,7 +9,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework import permissions
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import Group
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
 from django.http import HttpResponseNotFound
 from django.http import Http404
 import json
@@ -60,7 +60,7 @@ class SigninViewset(ModelViewSet):
 
     def get_queryset(self):
         # try:
-        return User.objects.all()
+        return None
         # except Exception as e:
         #     logger.error(f"error = {self.request}")
         #     logger.error(f"error = {e}")
@@ -101,6 +101,9 @@ class SigninViewset(ModelViewSet):
         errors = serializer.errors
         errors["success"] = False
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
 
 
 class SignoutViewset(APIView):
@@ -171,7 +174,13 @@ class UserViewset(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.get_queryset())
+            # pagination
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response({"success": True, "data": serializer.data})
+
             serializer = self.action_serializers["create"](queryset, many=True)
             return Response({"success": True, "data": serializer.data})
         except Exception as e:
@@ -242,7 +251,7 @@ class ClientViewset(ModelViewSet):
     lookup_field = 'client_id'  # Use to show detail page
     # queryset = Customer.objects.all()
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['company_name', 'client_id', 'client_manager']
+    filterset_fields = ['company_name', 'client_manager__email']
 
     action_serializers = {
         'create': ClientSerializer,
@@ -291,7 +300,13 @@ class ClientViewset(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.get_queryset())
+            # pagination
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response({"success": True, "data": serializer.data})
+
             serializer = self.action_serializers["create"](queryset, many=True)
             return Response({"success": True, "data": serializer.data})
         except Exception as e:
@@ -363,8 +378,9 @@ class ContractViewset(ModelViewSet):
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = []
     lookup_field = 'contract_id'  # Use to show detail page
+    # filter_backends = [DjangoFilterBackend]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title', 'client', 'contract_manager']
+    filterset_fields = ['title', 'client__company_name', 'contract_manager__email']
 
     action_serializers = {
         'create': ContractSerializer,
@@ -410,7 +426,13 @@ class ContractViewset(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.get_queryset())
+            # pagination
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response({"success": True, "data": serializer.data})
+
             serializer = self.action_serializers["create"](queryset, many=True)
             return Response({"success": True, "data": serializer.data})
         except Exception as e:
@@ -483,8 +505,8 @@ class EventViewset(ModelViewSet):
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = ['get', 'post', 'put', 'delete']
     lookup_field = 'event_id'  # Use to show detail page
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['company_name']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name', 'event_manager__email']
 
     action_serializers = {
         'create': EventSerializer,
@@ -530,7 +552,13 @@ class EventViewset(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.get_queryset())
+            # pagination
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response({"success": True, "data": serializer.data})
+
             serializer = self.action_serializers["create"](queryset, many=True)
             return Response({"success": True, "data": serializer.data})
         except Exception as e:
