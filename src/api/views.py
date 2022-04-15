@@ -13,6 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
 from django.http import HttpResponseNotFound
 from django.http import Http404
 import json
+from django_filters import rest_framework as restfilters
 from accounts.models import User
 from accounts.serializers import UserSerializer, SignupSerializer, SigninSerializer, UserDetailSerializer
 
@@ -129,7 +130,7 @@ class UserViewset(ModelViewSet):
     http_method_names = []
     lookup_field = 'user_id'  # Use to show detail page
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['email', 'groups']
+    filterset_fields = ['email', 'groups__name']
 
     action_serializers = {
         'create': UserSerializer,
@@ -167,7 +168,7 @@ class UserViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response({"success": True, "data": serializer.data})
+            return Response(serializer.data)
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
@@ -293,7 +294,7 @@ class ClientViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response({"success": True, "data": serializer.data})
+            return Response(serializer.data)
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
@@ -373,6 +374,15 @@ class ClientViewset(ModelViewSet):
 
 
 # CONTRACTS
+class ContractFilter(restfilters.FilterSet):
+    is_null_client = restfilters.BooleanFilter(field_name='client', lookup_expr='isnull')
+    is_null_manager = restfilters.BooleanFilter(field_name='contract_manager__email', lookup_expr='isnull')
+
+    class Meta:
+        model = Contract
+        fields = ('title', 'client__company_name', 'contract_manager__email')
+
+
 class ContractViewset(ModelViewSet):
     serializer_class = ContractSerializer
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
@@ -380,7 +390,8 @@ class ContractViewset(ModelViewSet):
     lookup_field = 'contract_id'  # Use to show detail page
     # filter_backends = [DjangoFilterBackend]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title', 'client__company_name', 'contract_manager__email']
+    #filterset_fields = ['title', 'client__company_name', 'contract_manager__email', 'contract_manager']
+    filterset_class = ContractFilter
 
     action_serializers = {
         'create': ContractSerializer,
@@ -419,7 +430,8 @@ class ContractViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response({"success": True, "data": serializer.data})
+            # return Response({"success": True, "data": serializer.data})
+            return Response(serializer.data)
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
@@ -489,6 +501,10 @@ class ContractViewset(ModelViewSet):
         instance = serializer.save()
         return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
 
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         try:
             ob = self.get_object()
@@ -545,7 +561,7 @@ class EventViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response({"success": True, "data": serializer.data})
+            return Response(serializer.data)
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
