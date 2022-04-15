@@ -38,9 +38,6 @@ Go to in "src" directory with :
 Run backend server :  
 `python manage.py runserver`
 
-API documentation :  
-link
-
 ### Install psql and create a database
 Download and install the latest postgresql version :  
 https://www.postgresql.org/download/  
@@ -111,3 +108,7 @@ In this file :
 `DB_PORT=5432`
 
 - to finish, in settings.py file, import dotenv `from dotenv import load_dotenv`, replace your secret key by `str(os.getenv('SECRET_KEY'))` and load your key with `load_dotenv()`
+
+
+### API documentation :  
+https://documenter.getpostman.com/view/17936497/Uyr4LgGA
