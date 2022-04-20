@@ -82,7 +82,7 @@ class Api:
             print(json_content)
             print("view_url = ", view_url)
             if "-detail" in view_url:
-                assert json_content["success"] is True
+                assert json_content is not {}
             else:
                 assert json_content["results"]["success"] is True
         print("response.content = ", response.content)
