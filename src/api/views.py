@@ -168,7 +168,7 @@ class UserViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            return Response({"success": True, "data": serializer.data})
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
@@ -294,7 +294,7 @@ class ClientViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            return Response({"success": True, "data": serializer.data})
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
@@ -431,7 +431,7 @@ class ContractViewset(ModelViewSet):
             instance = self.get_object()
             serializer = self.get_serializer(instance)
             # return Response({"success": True, "data": serializer.data})
-            return Response(serializer.data)
+            return Response({"success": True, "data": serializer.data})
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)
@@ -561,7 +561,7 @@ class EventViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            return Response({"success": True, "data": serializer.data})
         except Exception as e:
             logger.error(f"error = {e}")
             return Response({"success": False}, status.HTTP_400_BAD_REQUEST)

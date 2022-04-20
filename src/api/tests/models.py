@@ -79,13 +79,12 @@ class Api:
         status_codes = [200, 400]
         if response.status_code in status_codes:
             json_content = json.loads(response.content)
-            print(json_content["results"])
-            print(type(json_content["results"]))
+            print(json_content)
+            print("view_url = ", view_url)
             if "-detail" in view_url:
-                results = json_content["results"]
-                assert results["success"] is True
-            else:
                 assert json_content["success"] is True
+            else:
+                assert json_content["results"]["success"] is True
         print("response.content = ", response.content)
 
     def view_post(self, view_url, expected_status_code, **kwargs):
