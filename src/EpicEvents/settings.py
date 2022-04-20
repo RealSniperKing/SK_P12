@@ -158,6 +158,7 @@ AUTH_USER_MODEL = "accounts.User"
 # "rest_framework.authentication.SessionAuthentication",
 
 #https://jpadilla.github.io/django-rest-framework-jwt/
+#'EpicEvents.pagination.CustomPagination'
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
