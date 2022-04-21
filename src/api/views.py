@@ -60,12 +60,7 @@ class SigninViewset(ModelViewSet):
     permission_classes = []
 
     def get_queryset(self):
-        # try:
         return None
-        # except Exception as e:
-        #     logger.error(f"error = {self.request}")
-        #     logger.error(f"error = {e}")
-        #     return None
 
     def create(self, request):
         """Login user"""
