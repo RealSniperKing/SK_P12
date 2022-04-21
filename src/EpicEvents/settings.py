@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,6 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'accounts',
+    'crm',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -50,7 +55,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #'EpicEvents.middleware.PageNotFoundMiddleware',
+    #'EpicEvents.middleware.PageFatalErrorMiddleware'
 ]
+
 
 ROOT_URLCONF = 'EpicEvents.urls'
 
@@ -116,7 +124,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -128,3 +136,117 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Ovewrite Django User by this custom class
+AUTH_USER_MODEL = "accounts.User"
+
+# DEFAULT_PERMISSION_CLASSES: (
+#     'rest_framework.permissions.IsAuthenticated',
+#     'rest_framework.permissions.DjangoModelPermissions',
+# )
+#"rest_framework_simplejwt.authentication.JWTAuthentication"
+
+# "DEFAULT_AUTHENTICATION_CLASSES": [
+#     "rest_framework.authentication.TokenAuthentication",
+#     "rest_framework.authentication.SessionAuthentication",
+# ],
+
+#"rest_framework_simplejwt.authentication.JWTAuthentication",
+#"rest_framework.authentication.SessionAuthentication",
+# 'rest_framework.authentication.BasicAuthentication',
+# "rest_framework.authentication.SessionAuthentication",
+
+#https://jpadilla.github.io/django-rest-framework-jwt/
+#'EpicEvents.pagination.CustomPagination'
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+        "rest_framework.permissions.DjangoModelPermissions",
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'EXCEPTION_HANDLER': 'api.utils.custom_exception_handler'
+}
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+
+# https://docs.djangoproject.com/fr/4.0/howto/logging/#logging-how-to
+LOGGING = {
+    'version': 1,                       # the dictConfig format version
+    'disable_existing_loggers': False,  # retain the default loggers
+    'formatters': {
+            'verbose': {'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'},
+            'simple': {'format': '%(levelname)s %(asctime)s  %(message)s', 'datefmt': '%Y-%m-%d %H:%M'},
+        },
+    'handlers': {
+            'file_api': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': 'general_api.log',
+                "formatter": "simple",
+                'when': 'midnight',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,
+            },
+            'file_accounts': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': 'general_accounts.log',
+                "formatter": "simple",
+                'when': 'midnight',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,
+            },
+            'file_crm': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': 'general_crm.log',
+                "formatter": "simple",
+                'when': 'midnight',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,  # Set delay to True to fix permission error
+            },
+            'file_pagenotfound': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': 'general_pagenotfound.log',
+                "formatter": "simple",
+                'when': 'midnight',
+                'interval': 1,
+                'backupCount': 100,
+                'delay': True,  # Set delay to True to fix permission error
+            },
+        },
+    'loggers': {
+        'api': {
+            'level': 'DEBUG',
+            'handlers': ['file_api'],
+            'propagate': False,
+        },
+        'accounts': {
+            'level': 'DEBUG',
+            'handlers': ['file_accounts'],
+            'propagate': False,
+        },
+        'crm': {
+            'level': 'DEBUG',
+            'handlers': ['file_crm'],
+            'propagate': False,
+        },
+        'EpicEvents': {
+            'level': 'DEBUG',
+            'handlers': ['file_pagenotfound'],
+            'propagate': False,
+        },
+    },
+}
