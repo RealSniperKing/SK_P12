@@ -37,5 +37,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    print("ddd")
     urlpatterns.append(path('500/', error500, name='500'))
