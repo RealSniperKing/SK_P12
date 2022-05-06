@@ -1,18 +1,13 @@
-from django.shortcuts import redirect
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, BasePermission, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
-from rest_framework import permissions
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.models import Group
-from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
-from django.http import HttpResponseNotFound
-from django.http import Http404
-import json
+from django_filters.rest_framework import DjangoFilterBackend
+
 from django_filters import rest_framework as restfilters
 from accounts.models import User
 from accounts.serializers import UserSerializer, SignupSerializer, SigninSerializer, UserDetailSerializer
@@ -36,15 +31,6 @@ logger = logging.getLogger(__name__)
 def error500(request):
     print("------------- Test error 500 -------------")
     raise NotFound(detail="Fatal error", code=500)
-
-
-# def error404(request, exception):
-#     response_data = {}
-#     response_data['detail'] = 'Not found.'
-#     return HttpResponseNotFound(json.dumps(response_data), content_type="application/json")
-
-    # logger.error(request.data)
-    # raise NotFound(detail="Error 404", code=404)
 
 
 def error404(request):
@@ -72,7 +58,6 @@ class SigninViewset(ModelViewSet):
                 logger.error(f"email = {serializer.validated_data['email']}")
                 logger.error(f"password = {serializer.validated_data['password']}")
 
-                # user = User.objects.filter(email=serializer.validated_data['email']).first()
                 user = authenticate(request,
                                     email=serializer.validated_data['email'],
                                     password=serializer.validated_data['password'])
@@ -103,13 +88,11 @@ class SigninViewset(ModelViewSet):
 
 
 class SignoutViewset(APIView):
-    #IsAuthenticated
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         """Logout"""
         try:
-            # request = "dd"
             logout(request)
             return Response({"success": True}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -152,7 +135,6 @@ class UserViewset(ModelViewSet):
     def dispatch(self, *args, **kwargs):
         """Use dispatch to update http_method_names"""
         response = super(UserViewset, self).dispatch(*args, **kwargs)
-        # response['Cache-Control'] = 'no-cache'
         response['Allow'] = ', '.join(self.http_method_names)
         return response
 
@@ -205,8 +187,6 @@ class UserViewset(ModelViewSet):
         return Response(errors, status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        # instance = self.get_object()
-        # serializer = self.get_serializer(instance, data=request.data)
         partial = True
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -241,11 +221,9 @@ class UserViewset(ModelViewSet):
 # CLIENTS
 class ClientViewset(ModelViewSet):
     serializer_class = ClientSerializer
-    #IsAuthenticated, IsManagerOrAdminManager
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = []
     lookup_field = 'client_id'  # Use to show detail page
-    # queryset = Customer.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['company_name', 'client_manager__email']
 
@@ -256,7 +234,6 @@ class ClientViewset(ModelViewSet):
 
     def get_serializer_class(self):
         kwargs_dict = self.kwargs
-        #if self.request.user.is_staff:
 
         id_name = "client_id"
         if id_name in kwargs_dict:
@@ -278,7 +255,6 @@ class ClientViewset(ModelViewSet):
     def dispatch(self, *args, **kwargs):
         """Use dispatch to update http_method_names"""
         response = super(ClientViewset, self).dispatch(*args, **kwargs)
-        # response['Cache-Control'] = 'no-cache'
         response['Allow'] = ', '.join(self.http_method_names)
         return response
 
@@ -328,8 +304,6 @@ class ClientViewset(ModelViewSet):
         user = self.request.user
         client = serializer.save(author=user)
         print("client = ", client)
-
-        # client.groups.add("read_only")
 
         data = {"success": True,
                 "client_id": str(client.client_id)}
@@ -383,7 +357,6 @@ class ContractViewset(ModelViewSet):
     permission_classes = [IsAuthenticated, IsManagerOrAdminManager]
     http_method_names = []
     lookup_field = 'contract_id'  # Use to show detail page
-    # filter_backends = [DjangoFilterBackend]
     filter_backends = [DjangoFilterBackend]
     #filterset_fields = ['title', 'client__company_name', 'contract_manager__email', 'contract_manager']
     filterset_class = ContractFilter
@@ -413,8 +386,6 @@ class ContractViewset(ModelViewSet):
     def dispatch(self, *args, **kwargs):
         """Use dispatch to update http_method_names"""
         response = super(ContractViewset, self).dispatch(*args, **kwargs)
-        print("--------")
-        # response['Cache-Control'] = 'no-cache'
         response['Allow'] = ', '.join(self.http_method_names)
         return response
 
@@ -425,7 +396,6 @@ class ContractViewset(ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            # return Response({"success": True, "data": serializer.data})
             return Response(serializer.data)
         except Exception as e:
             logger.error(f"error = {e}")
@@ -448,7 +418,6 @@ class ContractViewset(ModelViewSet):
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
-        print("serializer = ", serializer)
         if serializer.is_valid():
             try:
                 response = self.perform_create(serializer)
@@ -464,11 +433,7 @@ class ContractViewset(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        # author = user
         contract = serializer.save()
-        print("contract = ", contract)
-
-        # client.groups.add("read_only")
 
         data = {"success": True,
                 "contract_id": str(contract.contract_id)}
@@ -526,7 +491,6 @@ class EventViewset(ModelViewSet):
 
     def get_serializer_class(self):
         kwargs_dict = self.kwargs
-        #if self.request.user.is_staff:
         if "client_id" in kwargs_dict:
             return self.action_serializers["retrieve"]
         return self.action_serializers["create"]
@@ -545,7 +509,6 @@ class EventViewset(ModelViewSet):
     def dispatch(self, *args, **kwargs):
         """Use dispatch to update http_method_names"""
         response = super(EventViewset, self).dispatch(*args, **kwargs)
-        # response['Cache-Control'] = 'no-cache'
         response['Allow'] = ', '.join(self.http_method_names)
         return response
 
@@ -578,7 +541,6 @@ class EventViewset(ModelViewSet):
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
-        print("serializer = ", serializer)
         if serializer.is_valid():
             try:
                 response = self.perform_create(serializer)

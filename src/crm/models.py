@@ -3,8 +3,6 @@ import uuid
 
 from django.db.models import ForeignKey
 from datetime import datetime
-from django.contrib.auth.models import PermissionsMixin
-from django.utils import timezone
 
 
 class Customer(models.Model):

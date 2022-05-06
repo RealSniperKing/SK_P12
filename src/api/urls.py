@@ -17,9 +17,7 @@ from django.urls import path, include, re_path
 from rest_framework import routers
 from .views import ClientViewset, ContractViewset, EventViewset, error500, SigninViewset, UserViewset, SignoutViewset
 from django.conf import settings
-from django.conf.urls import handler404
 
-# handler404 = error404
 
 # Create router
 router = routers.SimpleRouter()

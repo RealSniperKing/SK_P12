@@ -30,7 +30,6 @@ class ApiTest:
             management_team = management_group_name.first()
             management_team.name = group_name
             management_team.save()
-        # print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
 
     def launch_user_crud_actions(self, view_name, crud_actions):
         """Test CRUD operations : create, read, update, delete"""

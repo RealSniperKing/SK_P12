@@ -1,18 +1,7 @@
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-
 from .models import User, ManagementGroupName
-from django import forms
-
-from django.contrib import admin
-from django.contrib.auth.models import Group
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
@@ -34,8 +23,9 @@ class UserCreationForm(forms.ModelForm):
         # Check that the two password entries match
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise ValidationError("Passwords don't match")
+        if password1 and password2:
+            if password1 != password2:
+                raise ValidationError("Passwords don't match")
         return password2
 
     def save(self, commit=True):
@@ -97,11 +87,11 @@ class MyUserAdmin(BaseUserAdmin):
 
 
 class ManagementGroupNameAdmin(admin.ModelAdmin):
-    list_display = ('name',)  # fields to display in the listing
-    empty_value_display = '-empty-'        # display value when empty
-    list_filter = ()      # enable results filtering
-    list_per_page = 25                     # number of items per page
-    ordering = ['name']       # Default results ordering
+    list_display = ('name',)
+    empty_value_display = '-empty-'
+    list_filter = ()
+    list_per_page = 25
+    ordering = ['name']
 
     def has_add_permission(self, request, obj=None):
         return request.user.is_admin
@@ -112,6 +102,6 @@ class ManagementGroupNameAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.is_admin
 
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(ManagementGroupName, ManagementGroupNameAdmin)
-

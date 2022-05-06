@@ -12,6 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.error("------------------")
 
+
 # CONNECTION
 class SignupSerializer(ModelSerializer):
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
@@ -31,7 +32,7 @@ class SignupSerializer(ModelSerializer):
 
 class SigninSerializer(serializers.Serializer):
     """Use serializers.Serializer to lose models.EmailField(unique=True"""
-    email = serializers.EmailField(required=True)  #allow_blank=True
+    email = serializers.EmailField(required=True)
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True, required=True)
 
     def validate(self, data):
@@ -69,7 +70,6 @@ class UserSerializer(serializers.ModelSerializer):
                         'password': {'write_only': True,
                                      'style': {'input_type': 'password'}},
                         'lookup_field': 'user_id'}
-    print("-------+++++")
 
     def validate(self, data):
         # Is it a valid password ?
@@ -101,7 +101,6 @@ class GroupSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(many=True, slug_field='name', allow_empty=True, required=False, queryset=Group.objects.all())
     confirm_password = serializers.CharField(style={'input_type': 'password'}, allow_blank=False, write_only=True)
-    # email = serializers.EmailField(required=True, write_only=True)
 
     class Meta:
         model = User
@@ -110,7 +109,6 @@ class UserDetailSerializer(serializers.ModelSerializer):
                                      'style': {'input_type': 'password'}}}
 
     def validate(self, data):
-        # Is it a valid password ?
         password = data['password']
         validate_password(password)
 
@@ -118,4 +116,3 @@ class UserDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("passwords not match")
 
         return data
-

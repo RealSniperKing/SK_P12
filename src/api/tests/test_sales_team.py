@@ -1,13 +1,7 @@
 import pytest
 from crm.models import Customer, Contract, Event
 from accounts.models import User
-from django.test import Client
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
 from EpicEvents.settings import *
-from django.test.utils import override_settings
-import json
-from .models import Api
 from .controllers import ApiTest
 
 
@@ -29,18 +23,6 @@ def test_sales_team_permissions_true():
     # USERS URL
     crud_actions = {"create": 405, "read-list": 405, "read-detail": 404, "update": 404, "delete": 404}
     api_test.launch_user_crud_actions("users", crud_actions)
-
-    # CLIENTS URL
-    # crud_actions = {"create": 200, "read-list": 200, "read-detail": 400, "update": 400, "delete": 400}
-    # api_test.launch_customer_crud_actions("clients", crud_actions)
-
-    # # CONTRACT URL
-    # crud_actions = {"create": 200, "read": 200, "update": 405, "delete": 405}
-    # api_test.launch_contract_crud_actions("contracts", crud_actions)
-    #
-    # # EVENT URL
-    # crud_actions = {"create": 200, "read": 200, "update": 400, "delete": 400}
-    # api_test.launch_event_crud_actions("events", crud_actions)
 
 
 @pytest.mark.django_db(transaction=True)

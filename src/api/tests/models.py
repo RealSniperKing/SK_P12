@@ -2,7 +2,6 @@ from accounts.models import User
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from EpicEvents.settings import *
-from django.conf import settings
 from rest_framework.reverse import reverse
 
 from django.test import Client
@@ -28,13 +27,11 @@ class Api:
         return user
 
     def signin(self):
-        print("SIGNIN")
         # Build the URL
         url = reverse('api:signin-list')
 
         # Make a POST request to connect the user
         response = self.client.post(url, {'email': self.email, 'password': self.password})
-        print("response.status_code = ", response.status_code)
         assert response.status_code == 200
 
         json_content = json.loads(response.content)
@@ -62,9 +59,6 @@ class Api:
         return url, data
 
     def view_get(self, view_url, expected_status_code, **kwargs):
-        print("------- VIEW GET -------")
-        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
-
         if "-detail" in view_url:
             url, _ = self.detail_url_from_kwargs(view_url, kwargs)
         else:
@@ -73,24 +67,17 @@ class Api:
                                    format='json',
                                    **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'},
                                    follow=True)
-        print(response.status_code)
         assert response.status_code == expected_status_code
 
         status_codes = [200, 400]
         if response.status_code in status_codes:
             json_content = json.loads(response.content)
-            print(json_content)
-            print("view_url = ", view_url)
             if "-detail" in view_url:
                 assert json_content is not {}
             else:
                 assert json_content["results"]["success"] is True
-        print("response.content = ", response.content)
 
     def view_post(self, view_url, expected_status_code, **kwargs):
-        print("------- VIEW POST -------")
-        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
-
         data = kwargs.get('data', {})
 
         url = reverse(view_url)
@@ -100,8 +87,6 @@ class Api:
                                     format='json',
                                     **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
 
-        print(response.status_code)
-        print(response.content)
         assert response.status_code == expected_status_code
 
         json_content = {}
@@ -112,9 +97,6 @@ class Api:
         return json_content
 
     def view_put(self, view_url, expected_status_code, **kwargs):
-        print("------- VIEW PUT -------")
-        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
-
         url, data = self.detail_url_from_kwargs(view_url, kwargs)
 
         response = self.client.put(url,
@@ -122,8 +104,6 @@ class Api:
                                    content_type='application/json',
                                    format='json',
                                    **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
-        print(response)
-        print("response.content = ", response.content)
         assert response.status_code == expected_status_code
 
         status_codes = [200, 400]
@@ -132,16 +112,11 @@ class Api:
             assert json_content["success"] is True
 
     def view_delete(self, view_url, expected_status_code, **kwargs):
-        print("------- VIEW DELETE -------")
-        print("ManagementGroupName ==== ", ManagementGroupName.objects.all())
-
         url, data = self.detail_url_from_kwargs(view_url, kwargs)
         response = self.client.delete(url,
                                       content_type='application/json',
                                       format='json',
                                       **{'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'})
-        print(response.status_code)
-        print("response.content = ", response.content)
         assert response.status_code == expected_status_code
 
         status_codes = [200, 400]
@@ -159,35 +134,20 @@ class Api:
             model = model_and_permissions["model"]
             permissions = model_and_permissions["permissions"]
 
-            content_type = ContentType.objects.get_for_model(model)
-            print("............")
             for permission_name in permissions:
                 codename = f'{permission_name}_{str(model.__name__).lower()}'
-                name = f'{permission_name} {str(model.__name__).lower()}'.capitalize()
-
-                # permission = Permission.objects.create(
-                #     codename=codename,
-                #     name=name,
-                #     content_type=content_type)
 
                 # Get permission
                 permission = Permission.objects.filter(codename=codename).first()
-                # print("permission = ", permission)
                 if permission:
                     new_group.permissions.add(permission)
 
         return group_name
 
     def add_user_in_group(self, user_group_name):
-        print("Group.objects all = ", Group.objects.all())
-        print("user_group_name = ", user_group_name)
         if self.current_user:
-            # self.current_user.groups.clear()
             my_group = Group.objects.get(name=user_group_name)
             my_group.user_set.add(self.current_user)
-
-        print("+++++++++++++++++++++")
-        print("self.current_user.groups = ", self.current_user.groups)
 
     def signout(self):
         url = reverse('api:signout')

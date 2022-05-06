@@ -17,6 +17,4 @@ def custom_exception_handler(exc, context):
             "message": "Instance not found.",
             "success": False
         }
-
-    # raise NotFound(detail="Error 404, page not found", code=404)
     return response

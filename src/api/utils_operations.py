@@ -3,7 +3,6 @@ from uuid import UUID
 
 def permissions_from_admin_groups(user, model_name):
     model_name_lower = model_name.lower()
-    all_groups = user.groups.all()
 
     group_permissions = user.get_group_permissions()
 
@@ -22,7 +21,6 @@ def permissions_from_admin_groups(user, model_name):
     http_method_list = convert_actions_to_http_method_list(actions_string)
 
     if user.is_admin:
-        #'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'
         http_method_list = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
 
     return http_method_list

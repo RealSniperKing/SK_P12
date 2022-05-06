@@ -2,15 +2,10 @@ from rest_framework import serializers
 
 from .models import Customer, Contract, Event
 from accounts.models import User
-from accounts.serializers import UserSerializer, UserSmallSerializer
-
 import logging
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-# logger.warning('SERIALIZER')
 
 
 # Customer
@@ -66,7 +61,6 @@ class ContractSerializer(serializers.ModelSerializer):
 class ContractDetailSerializer(serializers.ModelSerializer):
     client = serializers.SlugRelatedField(slug_field='company_name', allow_null=True, queryset=Customer.objects.all())
     contract_manager = serializers.SlugRelatedField(slug_field='email', allow_null=True, queryset=User.objects.all())
-    # status = serializers.SlugRelatedField(slug_field='email', queryset=Contract.objects.all())
 
     class Meta:
         model = Contract

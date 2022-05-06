@@ -2,20 +2,8 @@ from django.db import models
 import uuid
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
-from django.db.models import ForeignKey
 from django.contrib.auth.models import Group
 
-# class CustomPermission(models.Model):
-#     class Types(models.TextChoices):
-#         MANAGEMENT = '0', 'Management'
-#         SALES = '1', 'Sales'
-#         SUPPORT = '2', 'Support'
-#         CLIENT = '3', 'Client'
-#
-#     role_permission = models.CharField(max_length=64, choices=Types.choices, default=Types.CLIENT)
-#
-#     def __str__(self):
-#         return self.role_permission
 from rest_framework.exceptions import ValidationError
 
 
@@ -37,14 +25,11 @@ class CustomUserManager(BaseUserManager):
 
 
 def getGroupNames():
-    print("------------ getGroupNames ------------")
     groups = Group.objects.all().values_list('name', flat=True)
-    print(groups)
     return zip(groups, groups)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    # Required fields
     email = models.EmailField(unique=True, max_length=255, blank=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -52,22 +37,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     user_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
-    # Optional fields
-    # ROLE_CHOICES = (
-    #     ('0', 'Management'),
-    #     ('1', 'Sales'),
-    #     ('2', 'Support'),
-    #     ('3', 'Client')
-    # )
     class Types(models.TextChoices):
-        # def __init__(self):
-
         MANAGEMENT = '0', 'Management'
         SALES = '1', 'Sales'
         SUPPORT = '2', 'Support'
         CLIENT = '3', 'Client'
 
-    print(getGroupNames())
     role = models.CharField(max_length=64, choices=getGroupNames(), blank=True)
 
     first_name = models.CharField(max_length=150, blank=True)
@@ -83,9 +58,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
-
-    # class Meta:
-    #     ordering = ['email']
 
     def __str__(self):
         return self.email
