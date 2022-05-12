@@ -64,9 +64,6 @@ To change language into user interface :
 Create database with owner :  
 `CREATE DATABASE "epicevents" WITH OWNER "yourusername";`
 
-Remove database :  
-`DROP DATABASE epicevents;`
-
 Grant access to user :  
 `GRANT ALL PRIVILEGES ON DATABASE epicevents TO yourusername;`
 
@@ -81,6 +78,9 @@ Connect to a database with "postgres" :
 
 Show relations :    
 `\dt`
+
+(Remove database)    
+`DROP DATABASE epicevents;`
 
 (Remove table)  
 `DROP TABLE clients_client CASCADE;`
@@ -103,7 +103,7 @@ In this file :
 - add those lines to connect your a Django project to the database:  
 `DB_NAME=epicevents`  
 `DB_USER=yourusername`  
-`DB_PASSWORD=yourpassword.`  
+`DB_PASSWORD=yourpassword`  
 `DB_HOST=localhost`  
 `DB_PORT=5432`
 
