@@ -10,7 +10,7 @@ class Customer(models.Model):
     client_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     # Manager id
-    client_manager = ForeignKey('accounts.User', related_name='manager_client_id', on_delete=models.SET_NULL, null=True)
+    client_manager = ForeignKey('accounts.User', related_name='manager_client_id', on_delete=models.SET_NULL, null=True, blank=True)
 
     # client contact
     first_name = models.CharField(max_length=200, blank=True)
@@ -20,7 +20,7 @@ class Customer(models.Model):
     mobile = models.CharField(max_length=12, blank=True)
 
     # client address
-    company_name = models.CharField(max_length=200)
+    company_name = models.CharField(max_length=200, unique=True)
     address = models.CharField(max_length=200, blank=True)
     address_complement = models.CharField(max_length=200, blank=True)
     postal_code = models.CharField(max_length=200, blank=True)
@@ -32,7 +32,7 @@ class Customer(models.Model):
     updating_time = models.DateTimeField(null=True)
 
     # Epic events, sales contact
-    sales_contact = ForeignKey('accounts.User', related_name='_sales_user_id', on_delete=models.SET_NULL, null=True)
+    sales_contact = ForeignKey('accounts.User', related_name='_sales_user_id', on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.updating_time = datetime.now()
@@ -47,10 +47,10 @@ class Contract(models.Model):
     contract_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     # Client id
-    client = ForeignKey('crm.Customer', related_name='customer_client_id', on_delete=models.SET_NULL, null=True)
+    client = ForeignKey('crm.Customer', related_name='customer_client_id', on_delete=models.SET_NULL, null=True, blank=True)
 
     # Manager id
-    contract_manager = ForeignKey('accounts.User', related_name='manager_contract_id', on_delete=models.SET_NULL, null=True)
+    contract_manager = ForeignKey('accounts.User', related_name='manager_contract_id', on_delete=models.SET_NULL, null=True, blank=True)
 
     title = models.CharField(max_length=200, blank=False)
 
@@ -63,8 +63,8 @@ class Contract(models.Model):
 
     status = models.CharField(max_length=64, choices=Status.choices, default=Status.ACHEMINEMENT)
 
-    amount = models.FloatField(null=True)
-    payment_due = models.DateTimeField(null=True)
+    amount = models.FloatField(null=True, blank=True)
+    payment_due = models.DateTimeField(null=True, blank=True)
 
     created_time = models.DateTimeField(auto_now_add=True)
     updating_time = models.DateTimeField(null=True)
@@ -80,17 +80,17 @@ class Contract(models.Model):
 class Event(models.Model):
     event_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
-    contract = ForeignKey('crm.Contract', related_name='event_contract_id', on_delete=models.SET_NULL, null=True)
+    contract = ForeignKey('crm.Contract', related_name='event_contract_id', on_delete=models.SET_NULL, null=True, blank=True)
 
-    event_manager = ForeignKey('accounts.User', related_name='event_manager_id', on_delete=models.SET_NULL, null=True)
+    event_manager = ForeignKey('accounts.User', related_name='event_manager_id', on_delete=models.SET_NULL, null=True, blank=True)
 
     name = models.CharField(max_length=200, blank=False)
 
-    attendees = models.IntegerField(null=True)
+    attendees = models.IntegerField(null=True, blank=True)
 
-    date_event_start = models.DateTimeField(null=True)
-    date_event_end = models.DateTimeField(null=True)
-    notes = models.CharField(max_length=1024, null=True, blank=False)
+    date_event_start = models.DateTimeField(null=True, blank=True)
+    date_event_end = models.DateTimeField(null=True, blank=True)
+    notes = models.CharField(max_length=1024, null=True, blank=True)
 
     created_time = models.DateTimeField(auto_now_add=True)
     updating_time = models.DateTimeField(null=True)
